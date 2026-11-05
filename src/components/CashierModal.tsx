@@ -15,6 +15,7 @@ interface CashierModalProps {
 }
 
 const NAGAD_DEPOSIT_NUMBER = '01759806218';
+const PENDING_DEPOSITS_KEY = 'aviator_pending_deposit_requests';
 
 export const CashierModal: React.FC<CashierModalProps> = ({
   isOpen,
@@ -116,6 +117,31 @@ export const CashierModal: React.FC<CashierModalProps> = ({
           status: 'Pending',
           createdAt: new Date().toISOString(),
         }).catch((err) => console.warn('Firestore deposit sync warning:', err));
+
+        // Keep the request available to the admin control room in the same
+        // browser even when the deployed serverless API is cold or unavailable.
+        try {
+          const existing = JSON.parse(localStorage.getItem(PENDING_DEPOSITS_KEY) || '[]');
+          const pendingRequest = {
+            id: cleanId,
+            userId: user.id,
+            userEmail: user.email,
+            userName: user.name,
+            type: 'Deposit',
+            method: 'Nagad',
+            phone,
+            amount: val,
+            trxId: cleanId,
+            status: 'Pending',
+            createdAt: new Date().toISOString(),
+          };
+          const withoutDuplicate = Array.isArray(existing)
+            ? existing.filter((item: { id?: string }) => item.id !== cleanId)
+            : [];
+          localStorage.setItem(PENDING_DEPOSITS_KEY, JSON.stringify([pendingRequest, ...withoutDuplicate]));
+        } catch (err) {
+          console.warn('Could not save local pending deposit record:', err);
+        }
       }
 
     }
