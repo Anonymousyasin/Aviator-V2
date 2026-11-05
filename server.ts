@@ -854,6 +854,11 @@ apiRouter.post('/admin/settings', adminAuthMiddleware, (req: Request, res: Respo
 
 app.use('/api', apiRouter);
 
+// Lightweight health endpoint for deployment checks and uptime monitors.
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ success: true, service: 'aviator-api', timestamp: new Date().toISOString() });
+});
+
 // Start Server with Vite or Static
 async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
@@ -879,4 +884,10 @@ async function startServer() {
   });
 }
 
-startServer();
+// Vercel imports this module as a serverless function. The local Node runtime
+// still starts the full Vite + Express server, while Vercel uses the exported app.
+if (process.env.VERCEL !== '1') {
+  startServer();
+}
+
+export { app };
