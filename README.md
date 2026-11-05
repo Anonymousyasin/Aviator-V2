@@ -26,3 +26,7 @@ The app's authentication and admin endpoints are implemented in `server.ts`. The
 For production financial data, use a persistent Node host or migrate the JSON files and in-memory sessions to a managed database/session store. Vercel function instances have ephemeral filesystems and can be recycled; the serverless route is intended to make the dashboard operational and testable, not to replace durable financial storage.
 
 The API health check is available at `/api/health`.
+
+## Telegram signals
+
+Telegram delivery no longer uses a configured `VITE_TELEGRAM_CHAT_ID`. Set only `VITE_TELEGRAM_BOT_TOKEN` in the deployment environment. A user must open the bot and press `/start` once; the game discovers all chats that have interacted with the bot and broadcasts future signals to every subscriber.
