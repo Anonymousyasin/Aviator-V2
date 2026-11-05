@@ -12,6 +12,7 @@ import { BottomNav } from './components/BottomNav';
 import { CashierModal } from './components/CashierModal';
 import { RulesModal } from './components/RulesModal';
 import { AuthModal } from './components/AuthModal';
+import { ProfileModal } from './components/ProfileModal';
 import { AviatorGame } from './games/AviatorGame';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { Lock } from 'lucide-react';
@@ -20,6 +21,7 @@ const MainContent: React.FC = () => {
   const [cashierOpen, setCashierOpen] = useState<boolean>(false);
   const [cashierTab, setCashierTab] = useState<'deposit' | 'withdraw'>('deposit');
   const [rulesOpen, setRulesOpen] = useState<boolean>(false);
+  const [profileOpen, setProfileOpen] = useState<boolean>(false);
   const [adminOpen, setAdminOpen] = useState<boolean>(() => {
     return (
       window.location.hash === '#admin' ||
@@ -63,6 +65,7 @@ const MainContent: React.FC = () => {
       <Header
         onOpenCashier={openCashier}
         onOpenRules={() => setRulesOpen(true)}
+        onOpenProfile={() => setProfileOpen(true)}
       />
 
       {/* 2. Live Aviator Bangladesh Payouts Marquee */}
@@ -88,7 +91,14 @@ const MainContent: React.FC = () => {
       {/* 5. Authentication Modal (Login & Registration) */}
       <AuthModal />
 
-      {/* 6. Fully Hidden Master Admin Dashboard */}
+      {/* 6. Profile Modal (User Info, Balance, Deposit/Withdraw, Preferences) */}
+      <ProfileModal
+        isOpen={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onOpenCashier={openCashier}
+      />
+
+      {/* 7. Fully Hidden Master Admin Dashboard */}
       {adminOpen && (
         <AdminDashboard
           onClose={() => {
@@ -100,7 +110,7 @@ const MainContent: React.FC = () => {
         />
       )}
 
-      {/* 7. Discreet Footer with Hidden Admin Trigger */}
+      {/* 8. Discreet Footer with Hidden Admin Trigger */}
       <footer className="text-center py-2 text-[10px] text-slate-700 flex items-center justify-center gap-2 select-none">
         <span>Ace67 Spribe Aviator Bangladesh · 18+ Only</span>
         <button
@@ -112,9 +122,10 @@ const MainContent: React.FC = () => {
         </button>
       </footer>
 
-      {/* 8. Mobile Bottom Navigation Bar */}
+      {/* 9. Mobile Bottom Navigation Bar with Profile Tab */}
       <BottomNav
         onOpenCashier={openCashier}
+        onOpenProfile={() => setProfileOpen(true)}
       />
     </div>
   );

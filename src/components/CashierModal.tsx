@@ -5,6 +5,9 @@ import { PaymentMethod } from '../types';
 import { formatBDT, isValidBDPhone } from '../utils/format';
 import { X, CheckCircle, AlertCircle, ShieldCheck, Copy, Sparkles, Check } from 'lucide-react';
 
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+
 interface CashierModalProps {
   isOpen: boolean;
   initialTab?: 'deposit' | 'withdraw';
@@ -19,7 +22,7 @@ export const CashierModal: React.FC<CashierModalProps> = ({
   onClose,
 }) => {
   const { balance, deposit, withdraw, firstDepositBonusClaimed } = useWallet();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [tab, setTab] = useState<'deposit' | 'withdraw'>(initialTab);
   const [method, setMethod] = useState<PaymentMethod>('Nagad');
   const [phone, setPhone] = useState<string>('01712345678');
@@ -74,6 +77,23 @@ export const CashierModal: React.FC<CashierModalProps> = ({
       setStep(1);
       setTrxId('');
 
+      // Mirror to Firestore transactions collection
+      if (user) {
+        setDoc(doc(db, 'transactions', cleanId), {
+          id: cleanId,
+          userId: user.id,
+          userEmail: user.email,
+          userName: user.name,
+          type: 'Deposit',
+          method: 'Nagad',
+          phone,
+          amount: val,
+          trxId: cleanId,
+          status: 'Pending',
+          createdAt: new Date().toISOString(),
+        }).catch((err) => console.warn('Firestore deposit sync warning:', err));
+      }
+
       // Send to backend for real-time admin dashboard tracking
       if (token) {
         fetch('/api/user/deposit-request', {
@@ -109,6 +129,24 @@ export const CashierModal: React.FC<CashierModalProps> = ({
     if (result.success) {
       setMessage({ text: result.message, type: 'success' });
       setAmount('1000');
+
+      const txId = `WD-${Date.now().toString().slice(-6)}`;
+
+      // Mirror to Firestore
+      if (user) {
+        setDoc(doc(db, 'transactions', txId), {
+          id: txId,
+          userId: user.id,
+          userEmail: user.email,
+          userName: user.name,
+          type: 'Withdraw',
+          method,
+          phone,
+          amount: val,
+          status: 'Pending',
+          createdAt: new Date().toISOString(),
+        }).catch((err) => console.warn('Firestore withdrawal sync warning:', err));
+      }
 
       // Send to backend for real-time admin review & approval
       if (token) {

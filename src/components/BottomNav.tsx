@@ -5,13 +5,15 @@ import { Plane, PlusCircle, ArrowDownToLine, User as UserIcon, LogIn } from 'luc
 
 interface BottomNavProps {
   onOpenCashier: (tab: 'deposit' | 'withdraw') => void;
+  onOpenProfile: () => void;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   onOpenCashier,
+  onOpenProfile,
 }) => {
   const { language } = useWallet();
-  const { isAuthenticated, user, openAuthModal } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c0e14]/98 backdrop-blur-md border-t border-[#1e2330] px-3 py-1.5 flex items-center justify-around text-[10px] font-bold text-slate-400">
@@ -37,20 +39,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       </button>
 
       <button
-        onClick={() => openAuthModal(isAuthenticated ? 'login' : 'login')}
+        onClick={onOpenProfile}
         className="flex flex-col items-center gap-0.5 p-1 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
       >
-        {isAuthenticated ? (
-          <>
-            <UserIcon className="w-4 h-4" />
-            <span className="max-w-[50px] truncate">{user?.name || (language === 'bn' ? 'প্রোফাইল' : 'Account')}</span>
-          </>
-        ) : (
-          <>
-            <LogIn className="w-4 h-4" />
-            <span>{language === 'bn' ? 'লগইন' : 'Login'}</span>
-          </>
-        )}
+        <UserIcon className="w-4 h-4" />
+        <span className="max-w-[65px] truncate">
+          {isAuthenticated && user ? user.name : (language === 'bn' ? 'প্রোফাইল' : 'Profile')}
+        </span>
       </button>
     </nav>
   );

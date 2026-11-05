@@ -7,11 +7,13 @@ import { Volume2, VolumeX, HelpCircle, LogIn, LogOut, User as UserIcon } from 'l
 interface HeaderProps {
   onOpenCashier: (tab: 'deposit' | 'withdraw') => void;
   onOpenRules: () => void;
+  onOpenProfile: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenCashier,
   onOpenRules,
+  onOpenProfile,
 }) => {
   const { balance, vipTier, language, setLanguage, soundMuted, toggleSound } = useWallet();
   const { user, isAuthenticated, logout, openAuthModal } = useAuth();
@@ -94,38 +96,42 @@ export const Header: React.FC<HeaderProps> = ({
             {language === 'bn' ? 'ডিপোজিট' : 'Deposit'}
           </button>
 
-          {/* Auth Controls */}
+          {/* Profile & Auth Controls */}
           {isAuthenticated && user ? (
             <div className="flex items-center gap-1.5">
-              <div className="hidden sm:flex items-center gap-1.5 bg-[#141a26] border border-slate-700 px-2.5 py-1 rounded-xl text-xs">
+              <button
+                onClick={onOpenProfile}
+                title="View Profile & Wallet"
+                className="flex items-center gap-1.5 bg-[#141a26] hover:bg-[#1a2233] border border-slate-700 hover:border-amber-500/50 px-2.5 py-1 rounded-xl text-xs transition-colors cursor-pointer"
+              >
                 <div className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-[10px]">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-slate-200 font-medium max-w-[90px] truncate">{user.name}</span>
-              </div>
+                <span className="text-slate-200 font-medium max-w-[80px] sm:max-w-[100px] truncate">{user.name}</span>
+              </button>
               <button
-                onClick={() => logout()}
-                title="Log Out"
-                className="p-1.5 text-slate-400 hover:text-red-400 bg-[#151924] border border-[#232b3d] hover:border-red-500/30 rounded-lg transition-colors cursor-pointer"
+                onClick={onOpenProfile}
+                title="Profile Settings"
+                className="p-1.5 text-slate-300 hover:text-amber-400 bg-[#151924] hover:bg-[#1f2738] border border-[#232b3d] rounded-lg transition-colors cursor-pointer"
               >
-                <LogOut className="w-4 h-4" />
+                <UserIcon className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
+              <button
+                onClick={onOpenProfile}
+                title="View Player Profile"
+                className="hidden sm:flex p-1.5 text-slate-400 hover:text-amber-400 bg-[#151924] border border-[#232b3d] rounded-lg transition-colors cursor-pointer"
+              >
+                <UserIcon className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => openAuthModal('login')}
                 className="px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-200 bg-[#161c28] hover:bg-[#1f2738] border border-slate-700 rounded-xl transition-all cursor-pointer flex items-center gap-1"
               >
                 <LogIn className="w-3.5 h-3.5 text-amber-400" />
                 <span>{language === 'bn' ? 'লগইন' : 'Login'}</span>
-              </button>
-              <button
-                onClick={() => openAuthModal('register')}
-                className="hidden sm:flex px-2.5 sm:px-3 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-500 border border-red-500 rounded-xl transition-all cursor-pointer items-center gap-1 shadow-sm"
-              >
-                <UserIcon className="w-3.5 h-3.5" />
-                <span>{language === 'bn' ? 'রেজিস্টার' : 'Register'}</span>
               </button>
             </div>
           )}

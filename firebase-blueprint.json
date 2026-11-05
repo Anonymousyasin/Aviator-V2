@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered player account profile with wallet credits and status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 256 },
+        "name": { "type": "string", "maxLength": 100 },
+        "balance": { "type": "number" },
+        "vipPoints": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "banned"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "email", "balance", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Deposit and withdrawal requests and records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 256 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["Deposit", "Withdraw", "Admin Credit", "Admin Debit"] },
+        "method": { "type": "string", "enum": ["Nagad", "bKash", "System"] },
+        "phone": { "type": "string", "maxLength": 20 },
+        "amount": { "type": "number" },
+        "trxId": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "note": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "method", "amount", "status", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrator reference",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "enum": ["admin", "superadmin"] }
+      },
+      "required": ["userId", "email", "role"]
+    },
+    "SystemSetting": {
+      "title": "SystemSetting",
+      "description": "Global application configuration and multiplier control",
+      "type": "object",
+      "properties": {
+        "nextCrashMultiplier": { "type": "number" },
+        "minDeposit": { "type": "number" },
+        "minWithdraw": { "type": "number" },
+        "depositNagadNumber": { "type": "string", "maxLength": 20 }
+      },
+      "required": ["minDeposit", "minWithdraw", "depositNagadNumber"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Financial deposit and withdrawal transactions"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Administrator records for role verification"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SystemSetting" },
+      "description": "Platform settings and Aviator multiplier engine rig"
+    }
+  }
+}
