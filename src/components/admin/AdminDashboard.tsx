@@ -151,6 +151,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         body: JSON.stringify({ username, password }),
       });
 
+      if (!res.headers.get('content-type')?.includes('application/json')) {
+        setAuthError('Admin API unavailable at /api/admin/login. Deploy the Node backend and route /api requests to it.');
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok || !data.success) {
         setAuthError(data.error || 'Invalid credentials');
@@ -161,7 +166,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
       localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
       setPassword('');
     } catch {
-      setAuthError('Connection error. Server may be reloading.');
+      setAuthError('Admin API could not be reached. Deploy the Node backend and route /api requests to it.');
     } finally {
       setAuthLoading(false);
     }

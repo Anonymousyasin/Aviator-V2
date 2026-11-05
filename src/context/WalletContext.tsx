@@ -29,17 +29,8 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, updateUserBalance } = useAuth();
-  const [balance, setBalance] = useState<number>(user ? user.balance : 5000);
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: 'START5000',
-      type: 'Welcome Bonus',
-      method: 'Promo',
-      amount: 1,
-      status: 'Success',
-      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-    }
-  ]);
+  const [balance, setBalance] = useState<number>(user ? user.balance : 0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [firstDepositBonusClaimed, setFirstDepositBonusClaimed] = useState<boolean>(false);
   const [lastDailyBonusDate, setLastDailyBonusDate] = useState<string | null>(null);
   const [vipPoints, setVipPoints] = useState<number>(user ? user.vipPoints : 350);
@@ -52,6 +43,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (user) {
       setBalance(user.balance);
       setVipPoints(user.vipPoints);
+    } else {
+      setBalance(0);
     }
   }, [user]);
 
@@ -61,7 +54,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved && !user) {
         const parsed = JSON.parse(saved);
-        if (typeof parsed.balance === 'number') setBalance(parsed.balance);
         if (Array.isArray(parsed.transactions)) setTransactions(parsed.transactions);
         if (typeof parsed.firstDepositBonusClaimed === 'boolean') setFirstDepositBonusClaimed(parsed.firstDepositBonusClaimed);
         if (parsed.lastDailyBonusDate) setLastDailyBonusDate(parsed.lastDailyBonusDate);

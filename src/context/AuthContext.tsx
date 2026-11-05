@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: fbUser.uid,
               email: fbUser.email || 'user@aviator.bd',
               name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Player',
-              balance: 5000,
+              balance: 0,
               vipPoints: 200,
               status: 'active',
               createdAt: new Date().toISOString(),
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: data.id || fbUser.uid,
               email: data.email,
               name: data.name || fbUser.displayName || 'Player',
-              balance: data.balance ?? 5000,
+              balance: data.balance ?? 0,
               vipPoints: data.vipPoints ?? 200,
               createdAt: data.createdAt,
             });
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   id: updated.id || fbUser.uid,
                   email: updated.email,
                   name: updated.name || 'Player',
-                  balance: updated.balance ?? 5000,
+                  balance: updated.balance ?? 0,
                   vipPoints: updated.vipPoints ?? 200,
                   createdAt: updated.createdAt,
                 });
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: fbUser.uid,
             email: fbUser.email || 'user@aviator.bd',
             name: fbUser.displayName || 'Player',
-            balance: 5000,
+            balance: 0,
             vipPoints: 200,
             createdAt: new Date().toISOString(),
           });
@@ -164,16 +164,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await signInWithPopup(auth, googleProvider);
       const fbUser = res.user;
 
-      // Optimistically set user in local state immediately
-      setUser({
-        id: fbUser.uid,
-        email: fbUser.email || 'user@aviator.bd',
-        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Player',
-        balance: 5000,
-        vipPoints: 200,
-        createdAt: new Date().toISOString(),
-      });
-
       // Mirror to Firestore user doc if not yet created
       try {
         const userDocRef = doc(db, 'users', fbUser.uid);
@@ -183,12 +173,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: fbUser.uid,
             email: fbUser.email || '',
             name: fbUser.displayName || 'Player',
-            balance: 5000,
+            balance: 0,
             vipPoints: 200,
             status: 'active',
             createdAt: new Date().toISOString(),
           };
           await setDoc(userDocRef, initialUserData, { merge: true });
+          setUser(initialUserData as User);
+        } else {
+          const savedUser = userSnap.data();
+          setUser({
+            id: savedUser.id || fbUser.uid,
+            email: savedUser.email || fbUser.email || 'user@aviator.bd',
+            name: savedUser.name || fbUser.displayName || 'Player',
+            balance: savedUser.balance ?? 0,
+            vipPoints: savedUser.vipPoints ?? 200,
+            createdAt: savedUser.createdAt || new Date().toISOString(),
+          });
         }
       } catch (firestoreErr) {
         console.warn('Firestore profile sync info:', firestoreErr);

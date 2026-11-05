@@ -77,7 +77,7 @@ export const AuthModal: React.FC = () => {
                 {isLogin ? 'Player Login (লগইন)' : 'Create Account (নিবন্ধন)'}
               </h3>
               <p className="text-[11px] text-slate-400">
-                {isLogin ? 'Enter your credentials to continue playing' : 'Join Aviator Bangladesh & get ৳5,000 starter bonus'}
+                {isLogin ? 'Enter your credentials to continue playing' : 'Join Aviator Bangladesh — new accounts start with ৳0'}
               </p>
             </div>
           </div>
