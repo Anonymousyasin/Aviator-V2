@@ -3,6 +3,7 @@ import { useWallet } from '../context/WalletContext';
 import { formatBDT } from '../utils/format';
 import { sound } from '../utils/audio';
 import { createSignalSessionId, publishSignal } from '../utils/signals';
+import { MAX_BETTING_WALLET_BALANCE } from '../utils/walletPolicy';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Clock, Menu, HelpCircle, Shield, Check } from 'lucide-react';
 
@@ -30,6 +31,7 @@ interface SimulatedBet {
 
 export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenRules }) => {
   const { balance, placeBet, creditWin } = useWallet();
+  const [walletNotice, setWalletNotice] = useState<string | null>(null);
 
   // History ribbon matching the screenshot colors: blue <2x, purple <10x, magenta >=10x
   const [history, setHistory] = useState<number[]>([
@@ -116,7 +118,11 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
     if (!p.activeBet || p.cashedOut) return;
 
     const winAmount = Math.round(p.activeBet * mult * 100) / 100;
-    creditWin(winAmount, 'Aviator');
+    const payout = creditWin(winAmount, 'Aviator');
+    if (payout.capped) {
+      const uncredited = Math.max(0, winAmount - payout.creditedAmount);
+      setWalletNotice(`Wallet limit reached at ৳${MAX_BETTING_WALLET_BALANCE.toLocaleString()}. ৳${uncredited.toLocaleString()} above the limit was not credited. Withdraw before betting again.`);
+    }
     sound.playWin();
 
     if (mult >= 5) {
@@ -487,6 +493,11 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
 
   return (
     <div className="max-w-md sm:max-w-lg lg:max-w-4xl mx-auto space-y-2 select-none font-sans">
+      {(balance >= MAX_BETTING_WALLET_BALANCE || walletNotice) && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-950/40 px-3 py-2 text-xs font-semibold text-amber-200" role="status">
+          {walletNotice || `Wallet limit reached (৳${MAX_BETTING_WALLET_BALANCE.toLocaleString()}). Withdraw funds before placing another bet.`}
+        </div>
+      )}
       
       {/* 1. Official Aviator Header Bar (Exact 1:1 match to Spribe UI screenshot) */}
       <div className="bg-[#101114] border border-[#22242a] px-3.5 py-2.5 rounded-xl flex items-center justify-between">

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
 import { PaymentMethod } from '../types';
 import { formatBDT, isValidBDPhone } from '../utils/format';
 import { X, CheckCircle, AlertCircle, ShieldCheck, Copy, Sparkles, Check } from 'lucide-react';
+import { FIRST_WITHDRAWAL_FEE, NAGAD_AGENT_NUMBER } from '../utils/walletPolicy';
 
 import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -14,7 +15,6 @@ interface CashierModalProps {
   onClose: () => void;
 }
 
-const NAGAD_DEPOSIT_NUMBER = '01759806218';
 const PENDING_DEPOSITS_KEY = 'aviator_pending_deposit_requests';
 
 export const CashierModal: React.FC<CashierModalProps> = ({
@@ -22,23 +22,36 @@ export const CashierModal: React.FC<CashierModalProps> = ({
   initialTab = 'deposit',
   onClose,
 }) => {
-  const { balance, deposit, withdraw, firstDepositBonusClaimed } = useWallet();
+  const { balance, deposit, withdraw, firstDepositBonusClaimed, firstWithdrawalFeePaid, setFirstWithdrawalFeePaid } = useWallet();
   const { token, user } = useAuth();
   const [tab, setTab] = useState<'deposit' | 'withdraw'>(initialTab);
   const [method, setMethod] = useState<PaymentMethod>('Nagad');
   const [phone, setPhone] = useState<string>('01712345678');
   const [amount, setAmount] = useState<string>('1000');
   const [trxId, setTrxId] = useState<string>('');
+  const [firstWithdrawalFeeTrxId, setFirstWithdrawalFeeTrxId] = useState<string>('');
   const [step, setStep] = useState<1 | 2>(1);
   const [copied, setCopied] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !token) return;
+    let cancelled = false;
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled && data.user) setFirstWithdrawalFeePaid(data.user.firstWithdrawalFeePaid === true);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [isOpen, token, setFirstWithdrawalFeePaid]);
 
   if (!isOpen) return null;
 
   const quickAmounts = [500, 1000, 2000, 5000, 10000];
 
   const handleCopyNumber = () => {
-    navigator.clipboard.writeText(NAGAD_DEPOSIT_NUMBER);
+    navigator.clipboard.writeText(NAGAD_AGENT_NUMBER);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -147,7 +160,7 @@ export const CashierModal: React.FC<CashierModalProps> = ({
     }
   };
 
-  const handleWithdraw = (e: React.FormEvent) => {
+  const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     if (!isValidBDPhone(phone)) {
@@ -164,10 +177,43 @@ export const CashierModal: React.FC<CashierModalProps> = ({
       return;
     }
 
-    const result = withdraw(method, phone, val);
+    const cleanFeeTrxId = firstWithdrawalFeeTrxId.trim().toUpperCase();
+    if (!firstWithdrawalFeePaid && cleanFeeTrxId.length < 8) {
+      setMessage({ text: 'Enter the transaction ID for the ৳1,000 first-withdrawal fee.', type: 'error' });
+      return;
+    }
+
+    if (token) {
+      try {
+        const response = await fetch('/api/user/withdraw-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            method,
+            phone,
+            amount: val,
+            ...(firstWithdrawalFeePaid ? {} : { feeTrxId: cleanFeeTrxId }),
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          setMessage({ text: data.error || 'Unable to submit the withdrawal request. Please try again.', type: 'error' });
+          return;
+        }
+      } catch {
+        setMessage({ text: 'Unable to reach the withdrawal review service. Please try again.', type: 'error' });
+        return;
+      }
+    }
+
+    const result = withdraw(method, phone, val, cleanFeeTrxId, !token);
     if (result.success) {
       setMessage({ text: result.message, type: 'success' });
       setAmount('1000');
+      setFirstWithdrawalFeeTrxId('');
 
       const txId = `WD-${Date.now().toString().slice(-6)}`;
 
@@ -182,22 +228,16 @@ export const CashierModal: React.FC<CashierModalProps> = ({
           method,
           phone,
           amount: val,
+          ...(firstWithdrawalFeePaid ? {} : {
+            feeAmount: FIRST_WITHDRAWAL_FEE,
+            feeTrxId: cleanFeeTrxId,
+            feeAgentNumber: NAGAD_AGENT_NUMBER,
+          }),
           status: 'Pending',
           createdAt: new Date().toISOString(),
         }).catch((err) => console.warn('Firestore withdrawal sync warning:', err));
       }
 
-      // Send to backend for real-time admin review & approval
-      if (token) {
-        fetch('/api/user/withdraw-request', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ method, phone, amount: val }),
-        }).catch((err) => console.error('Failed to log withdrawal request:', err));
-      }
     } else {
       setMessage({ text: result.message, type: 'error' });
     }
@@ -363,7 +403,7 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                     
                     {/* Assigned Nagad Deposit Number */}
                     <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 font-mono text-base text-amber-300 font-bold">
-                      <span className="tracking-wider">{NAGAD_DEPOSIT_NUMBER}</span>
+                      <span className="tracking-wider">{NAGAD_AGENT_NUMBER}</span>
                       <button
                         type="button"
                         onClick={handleCopyNumber}
@@ -472,6 +512,35 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                 />
               </div>
 
+              {!firstWithdrawalFeePaid && (
+                <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 space-y-3">
+                  <div>
+                    <p className="text-sm font-extrabold text-amber-200">One-time first-withdrawal fee: ৳{FIRST_WITHDRAWAL_FEE.toLocaleString()}</p>
+                    <p className="mt-1 text-xs text-slate-300">Pay separately to the same Nagad agent number used for deposits. This fee is not deducted from your wallet. If a withdrawal is rejected after you paid, reuse the same TxID and do not pay again.</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-[#080d16] border border-slate-700 p-2.5">
+                    <span className="font-mono text-sm font-bold tracking-wider text-amber-300">{NAGAD_AGENT_NUMBER}</span>
+                    <button type="button" onClick={handleCopyNumber} className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200">
+                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fee payment transaction ID</label>
+                    <input
+                      type="text"
+                      value={firstWithdrawalFeeTrxId}
+                      onChange={(e) => setFirstWithdrawalFeeTrxId(e.target.value)}
+                      placeholder="Enter the Nagad TxID"
+                      minLength={8}
+                      className="w-full bg-[#080d16] border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:outline-none focus:border-amber-400"
+                      required
+                    />
+                    <p className="mt-1 text-[11px] text-slate-400">An admin will verify this payment before processing the withdrawal.</p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-400">
@@ -498,7 +567,7 @@ export const CashierModal: React.FC<CashierModalProps> = ({
 
               <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-xs text-slate-400 space-y-1">
                 <p>• Fast withdrawal processing (average 3-5 minutes).</p>
-                <p>• 0% withdrawal processing fee for Ace67 members.</p>
+                <p>• ৳{FIRST_WITHDRAWAL_FEE.toLocaleString()} fee applies to your first withdrawal only; later withdrawals have no fee.</p>
               </div>
 
               <button

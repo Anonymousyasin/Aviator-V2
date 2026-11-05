@@ -6,6 +6,7 @@ export interface User {
   name: string;
   balance: number;
   vipPoints: number;
+  firstWithdrawalFeePaid?: boolean;
   createdAt?: string;
 }
 
@@ -21,6 +22,9 @@ export interface Transaction {
   status: TransactionStatus;
   date: string;
   phone?: string;
+  feeAmount?: number;
+  feeTrxId?: string;
+  feeAgentNumber?: string;
 }
 
 export type VipTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';

@@ -55,6 +55,9 @@ interface TransactionItem {
   method: 'Nagad' | 'bKash' | 'System';
   phone: string;
   amount: number;
+  feeAmount?: number;
+  feeTrxId?: string;
+  feeAgentNumber?: string;
   trxId?: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   note?: string;
@@ -969,6 +972,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                       <th className="p-3.5">ID / Date</th>
                       <th className="p-3.5">Player</th>
                       <th className="p-3.5">Channel / Phone</th>
+                      <th className="p-3.5">First fee proof</th>
                       <th className="p-3.5 text-right">Amount</th>
                       <th className="p-3.5 text-center">Status</th>
                       <th className="p-3.5 text-right">Actions</th>
@@ -977,7 +981,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                   <tbody className="divide-y divide-slate-800/60">
                     {withdrawalTransactions.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-slate-500">
+                        <td colSpan={7} className="p-8 text-center text-slate-500">
                           No withdrawal requests found.
                         </td>
                       </tr>
@@ -995,6 +999,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                           <td className="p-3.5">
                             <span className="font-bold text-white block">{w.method}</span>
                             <span className="font-mono text-slate-400">{w.phone}</span>
+                          </td>
+                          <td className="p-3.5">
+                            {w.feeTrxId ? (
+                              <>
+                                <span className="block font-mono text-amber-300">{w.feeTrxId}</span>
+                                <span className="text-[10px] text-slate-400">{formatBDT(w.feeAmount || 0)} to {w.feeAgentNumber || 'deposit agent'}</span>
+                              </>
+                            ) : (
+                              <span className="text-slate-500">—</span>
+                            )}
                           </td>
                           <td className="p-3.5 text-right font-mono font-black text-red-400 text-sm">
                             -{formatBDT(w.amount)}
@@ -1019,7 +1033,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                   onClick={() => handleWithdrawalStatus(w.id, 'Approved')}
                                   className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg cursor-pointer shadow-sm text-xs"
                                 >
-                                  ✓ Mark Paid
+                                  {w.feeTrxId ? '✓ Verify fee & mark paid' : '✓ Mark Paid'}
                                 </button>
                                 <button
                                   onClick={() => handleWithdrawalStatus(w.id, 'Rejected')}

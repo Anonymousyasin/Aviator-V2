@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { PaymentMethod, Transaction, VipTier } from '../types';
 import { sound } from '../utils/audio';
 import { useAuth } from './AuthContext';
+import { FIRST_WITHDRAWAL_FEE, MAX_BETTING_WALLET_BALANCE, NAGAD_AGENT_NUMBER } from '../utils/walletPolicy';
 
 interface WalletContextType {
   balance: number;
@@ -9,6 +10,8 @@ interface WalletContextType {
   vipTier: VipTier;
   vipPoints: number;
   firstDepositBonusClaimed: boolean;
+  firstWithdrawalFeePaid: boolean;
+  setFirstWithdrawalFeePaid: (paid: boolean) => void;
   lastDailyBonusDate: string | null;
   activeGameId: string | null;
   language: 'en' | 'bn';
@@ -17,9 +20,9 @@ interface WalletContextType {
   setLanguage: (lang: 'en' | 'bn') => void;
   toggleSound: () => void;
   placeBet: (amount: number) => boolean;
-  creditWin: (amount: number, gameTitle: string) => void;
+  creditWin: (amount: number, gameTitle: string) => { creditedAmount: number; capped: boolean };
   deposit: (method: PaymentMethod, phone: string, amount: number, trxId: string) => { success: boolean; message: string; bonus: number };
-  withdraw: (method: PaymentMethod, phone: string, amount: number) => { success: boolean; message: string };
+  withdraw: (method: PaymentMethod, phone: string, amount: number, feeTrxId?: string, markFeePaid?: boolean) => { success: boolean; message: string };
   claimDailyBonus: () => { success: boolean; message: string; amount: number };
 }
 
@@ -28,10 +31,11 @@ const STORAGE_KEY = 'ace67_platform_state_v1';
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, updateUserBalance } = useAuth();
-  const [balance, setBalance] = useState<number>(user ? user.balance : 0);
+  const { user, token, updateUserBalance } = useAuth();
+  const [balance, setBalance] = useState<number>(user ? Math.min(user.balance, MAX_BETTING_WALLET_BALANCE) : 0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [firstDepositBonusClaimed, setFirstDepositBonusClaimed] = useState<boolean>(false);
+  const [firstWithdrawalFeePaid, setFirstWithdrawalFeePaid] = useState<boolean>(false);
   const [lastDailyBonusDate, setLastDailyBonusDate] = useState<string | null>(null);
   const [vipPoints, setVipPoints] = useState<number>(user ? user.vipPoints : 350);
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
@@ -41,12 +45,21 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Sync when user changes in AuthContext
   useEffect(() => {
     if (user) {
-      setBalance(user.balance);
+      setBalance(Math.min(user.balance, MAX_BETTING_WALLET_BALANCE));
       setVipPoints(user.vipPoints);
+      const feeKey = `aviator_first_withdrawal_fee_paid_${user.id}`;
+      const savedFeeState = localStorage.getItem(feeKey) === 'true';
+      setFirstWithdrawalFeePaid(typeof user.firstWithdrawalFeePaid === 'boolean' ? user.firstWithdrawalFeePaid : savedFeeState);
     } else {
       setBalance(0);
+      setFirstWithdrawalFeePaid(localStorage.getItem('aviator_first_withdrawal_fee_paid_guest') === 'true');
     }
   }, [user]);
+
+  useEffect(() => {
+    const feeKey = `aviator_first_withdrawal_fee_paid_${user?.id || 'guest'}`;
+    localStorage.setItem(feeKey, String(firstWithdrawalFeePaid));
+  }, [firstWithdrawalFeePaid, user?.id]);
 
   // Initialize from LocalStorage if not logged in
   useEffect(() => {
@@ -54,7 +67,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved && !user) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.transactions)) setTransactions(parsed.transactions);
+        if (Array.isArray(parsed.transactions)) {
+          setTransactions(parsed.transactions);
+          if (parsed.transactions.some((tx: Transaction) => tx.type === 'Withdraw' && tx.status === 'Success')) {
+            setFirstWithdrawalFeePaid(true);
+          }
+        }
         if (typeof parsed.firstDepositBonusClaimed === 'boolean') setFirstDepositBonusClaimed(parsed.firstDepositBonusClaimed);
         if (parsed.lastDailyBonusDate) setLastDailyBonusDate(parsed.lastDailyBonusDate);
         if (typeof parsed.vipPoints === 'number') setVipPoints(parsed.vipPoints);
@@ -112,7 +130,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     vipPoints >= 500 ? 'Silver' : 'Bronze';
 
   const placeBet = (amount: number): boolean => {
-    if (amount <= 0 || amount > balance) {
+    if (amount <= 0 || amount > balance || balance >= MAX_BETTING_WALLET_BALANCE) {
       return false;
     }
     const nextBal = Math.round((balance - amount) * 100) / 100;
@@ -126,14 +144,16 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const creditWin = (amount: number, gameTitle: string) => {
-    if (amount <= 0) return;
-    const nextBal = Math.round((balance + amount) * 100) / 100;
-    const nextVip = vipPoints + Math.floor(amount / 30);
+    if (amount <= 0) return { creditedAmount: 0, capped: false };
+    const nextBal = Math.min(MAX_BETTING_WALLET_BALANCE, Math.round((balance + amount) * 100) / 100);
+    const creditedAmount = Math.max(0, Math.round((nextBal - balance) * 100) / 100);
+    const capped = creditedAmount < amount;
+    const nextVip = vipPoints + Math.floor(creditedAmount / 30);
     setBalance(nextBal);
     setVipPoints(nextVip);
     updateUserBalance(nextBal, nextVip);
     
-    if (amount > 1000) {
+    if (creditedAmount > 1000) {
       sound.playBigWin();
     } else {
       sound.playWin();
@@ -141,6 +161,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Save state
     saveState(nextBal, transactions, firstDepositBonusClaimed, lastDailyBonusDate, nextVip, language, soundMuted);
+    return { creditedAmount, capped };
   };
 
   const deposit = (method: PaymentMethod, phone: string, amount: number, trxId: string) => {
@@ -172,9 +193,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   };
 
-  const withdraw = (method: PaymentMethod, phone: string, amount: number) => {
+  const withdraw = (method: PaymentMethod, phone: string, amount: number, feeTrxId?: string, markFeePaid = true) => {
     if (amount > balance) {
       return { success: false, message: 'Insufficient balance' };
+    }
+    if (!firstWithdrawalFeePaid && (!feeTrxId || feeTrxId.trim().length < 8)) {
+      return { success: false, message: 'Enter the transaction ID for the ৳1,000 first-withdrawal fee.' };
     }
 
     const nextBal = Math.round((balance - amount) * 100) / 100;
@@ -190,23 +214,33 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         status: 'Pending',
         date: dateStr,
         phone,
+        ...(firstWithdrawalFeePaid ? {} : {
+          feeAmount: FIRST_WITHDRAWAL_FEE,
+          feeTrxId: feeTrxId?.trim().toUpperCase(),
+          feeAgentNumber: NAGAD_AGENT_NUMBER,
+        }),
       },
       ...transactions,
     ];
 
     setBalance(nextBal);
     setTransactions(newTx);
+    if (!firstWithdrawalFeePaid && markFeePaid) {
+      const feeKey = `aviator_first_withdrawal_fee_paid_${user?.id || 'guest'}`;
+      localStorage.setItem(feeKey, 'true');
+      setFirstWithdrawalFeePaid(true);
+    }
     updateUserBalance(nextBal, vipPoints);
     sound.playClick();
 
     saveState(nextBal, newTx, firstDepositBonusClaimed, lastDailyBonusDate, vipPoints, language, soundMuted);
 
-    // Simulate approval within 4 seconds
-    setTimeout(() => {
-      setTransactions((prev) =>
-        prev.map((t) => (t.id === txId ? { ...t, status: 'Success' } : t))
-      );
-    }, 4000);
+    // Keep backend-backed transactions pending until the admin processes them.
+    if (!token) {
+      setTimeout(() => {
+        setTransactions((prev) => prev.map((t) => (t.id === txId ? { ...t, status: 'Success' } : t)));
+      }, 4000);
+    }
 
     return {
       success: true,
@@ -220,7 +254,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return { success: false, message: 'You have already claimed today’s free ৳100! Come back tomorrow.', amount: 0 };
     }
 
-    const amount = 100;
+    const amount = Math.min(100, Math.max(0, MAX_BETTING_WALLET_BALANCE - balance));
+    if (amount === 0) {
+      return { success: false, message: 'Wallet limit reached. Withdraw funds before claiming more credits.', amount: 0 };
+    }
     const nextBal = balance + amount;
     const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -254,6 +291,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         vipTier,
         vipPoints,
         firstDepositBonusClaimed,
+        firstWithdrawalFeePaid,
+        setFirstWithdrawalFeePaid,
         lastDailyBonusDate,
         activeGameId,
         language,

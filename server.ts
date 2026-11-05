@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { FIRST_WITHDRAWAL_FEE, MAX_BETTING_WALLET_BALANCE, NAGAD_AGENT_NUMBER } from './src/utils/walletPolicy';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +34,7 @@ interface StoredUser {
   salt: string;
   balance: number;
   vipPoints: number;
+  firstWithdrawalFeePaid?: boolean;
   status: 'active' | 'banned';
   createdAt: string;
 }
@@ -52,6 +54,9 @@ interface StoredTransaction {
   method: 'Nagad' | 'bKash' | 'System';
   phone: string;
   amount: number;
+  feeAmount?: number;
+  feeTrxId?: string;
+  feeAgentNumber?: string;
   trxId?: string; // for Nagad deposits
   status: 'Pending' | 'Approved' | 'Rejected';
   note?: string;
@@ -122,7 +127,7 @@ let settingsData = loadJson<AppSettings>(SETTINGS_FILE, {
   nextCrashMultiplier: null,
   minDeposit: 500,
   minWithdraw: 500,
-  depositNagadNumber: '01759806218',
+  depositNagadNumber: NAGAD_AGENT_NUMBER,
 });
 
 // Initialize Users
@@ -185,12 +190,16 @@ if (transactionsCache.length === 0) {
 }
 
 function sanitizeUser(user: StoredUser) {
+  const hasPriorApprovedWithdrawal = transactionsCache.some(
+    (tx) => tx.type === 'Withdraw' && tx.status === 'Approved' && (tx.userId === user.id || tx.userEmail === user.email)
+  );
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     balance: user.balance,
     vipPoints: user.vipPoints,
+    firstWithdrawalFeePaid: user.firstWithdrawalFeePaid === true || hasPriorApprovedWithdrawal,
     status: user.status,
     createdAt: user.createdAt,
   };
@@ -352,7 +361,7 @@ apiRouter.post('/user/sync-wallet', userAuthMiddleware, (req: Request, res: Resp
   const { balance, vipPoints } = req.body;
 
   if (typeof balance === 'number' && balance >= 0) {
-    user.balance = Math.round(balance * 100) / 100;
+    user.balance = Math.min(MAX_BETTING_WALLET_BALANCE, Math.round(balance * 100) / 100);
   }
   if (typeof vipPoints === 'number' && vipPoints >= 0) {
     user.vipPoints = vipPoints;
@@ -408,7 +417,7 @@ apiRouter.post('/user/deposit-request', userAuthMiddleware, (req: Request, res: 
 // User submit Withdrawal Request
 apiRouter.post('/user/withdraw-request', userAuthMiddleware, (req: Request, res: Response) => {
   const user = (req as any).user as StoredUser;
-  const { method, phone, amount } = req.body;
+  const { method, phone, amount, feeTrxId: submittedFeeTrxId } = req.body;
 
   const numAmount = parseFloat(amount);
   if (isNaN(numAmount) || numAmount < 500) {
@@ -419,9 +428,23 @@ apiRouter.post('/user/withdraw-request', userAuthMiddleware, (req: Request, res:
     return res.status(400).json({ error: 'Insufficient balance for this withdrawal.' });
   }
 
-  // Deduct balance immediately upon request
-  user.balance = Math.round((user.balance - numAmount) * 100) / 100;
-  saveJson(USERS_FILE, usersCache);
+  transactionsCache = loadJson<StoredTransaction[]>(TRANSACTIONS_FILE, []);
+  const hasPendingWithdrawal = transactionsCache.some(
+    (tx) => tx.type === 'Withdraw' && tx.userId === user.id && tx.status === 'Pending'
+  );
+  if (hasPendingWithdrawal) {
+    return res.status(409).json({ error: 'You already have a pending withdrawal request.' });
+  }
+
+  const hasPriorApprovedWithdrawal = transactionsCache.some(
+    (tx) => tx.type === 'Withdraw' && tx.status === 'Approved' && (tx.userId === user.id || tx.userEmail === user.email)
+  );
+  if (hasPriorApprovedWithdrawal) user.firstWithdrawalFeePaid = true;
+  const requiresFirstFee = user.firstWithdrawalFeePaid !== true;
+  const feeTrxId = typeof submittedFeeTrxId === 'string' ? submittedFeeTrxId.trim().toUpperCase() : '';
+  if (requiresFirstFee && feeTrxId.length < 8) {
+    return res.status(400).json({ error: `Pay the ৳${FIRST_WITHDRAWAL_FEE.toLocaleString()} first-withdrawal fee to the deposit Nagad agent and enter its transaction ID.` });
+  }
 
   const newTx: StoredTransaction = {
     id: `WD-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -432,11 +455,19 @@ apiRouter.post('/user/withdraw-request', userAuthMiddleware, (req: Request, res:
     method: method === 'bKash' ? 'bKash' : 'Nagad',
     phone: phone || '01XXXXXXXXX',
     amount: numAmount,
+    ...(requiresFirstFee ? {
+      feeAmount: FIRST_WITHDRAWAL_FEE,
+      feeTrxId,
+      feeAgentNumber: NAGAD_AGENT_NUMBER,
+    } : {}),
     status: 'Pending',
     createdAt: new Date().toISOString(),
   };
 
-  transactionsCache = loadJson<StoredTransaction[]>(TRANSACTIONS_FILE, []);
+  // The fee is paid separately to the agent and must be verified by an admin
+  // against this transaction ID before the withdrawal is marked paid.
+  user.balance = Math.round((user.balance - numAmount) * 100) / 100;
+  saveJson(USERS_FILE, usersCache);
   transactionsCache.unshift(newTx);
   saveJson(TRANSACTIONS_FILE, transactionsCache);
 
@@ -768,6 +799,16 @@ apiRouter.post('/admin/withdrawals/:id/status', adminAuthMiddleware, (req: Reque
   tx.status = status;
   tx.note = note || tx.note;
   tx.updatedAt = new Date().toISOString();
+
+  // If approved, the admin has verified any first-withdrawal fee proof.
+  if (status === 'Approved' && prevStatus !== 'Approved') {
+    usersCache = loadJson<StoredUser[]>(USERS_FILE, []);
+    const user = usersCache.find((u) => u.id === tx.userId || u.email === tx.userEmail);
+    if (user) {
+      user.firstWithdrawalFeePaid = true;
+      saveJson(USERS_FILE, usersCache);
+    }
+  }
 
   // If rejected and was previously Pending, REFUND the money back to the user!
   if (status === 'Rejected' && prevStatus === 'Pending') {
