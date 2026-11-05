@@ -61,7 +61,7 @@ export const CashierModal: React.FC<CashierModalProps> = ({
     setStep(2);
   };
 
-  const handleDepositFinal = (e: React.FormEvent) => {
+  const handleDepositFinal = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     const cleanId = trxId.trim().toUpperCase();
@@ -71,6 +71,30 @@ export const CashierModal: React.FC<CashierModalProps> = ({
     }
 
     const val = parseFloat(amount);
+
+    // Submit the request before updating the local transaction list. The
+    // server records it as Pending; only admin approval may credit the wallet.
+    if (token) {
+      try {
+        const response = await fetch('/api/user/deposit-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ phone, amount: val, trxId: cleanId }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          setMessage({ text: data.error || 'Unable to submit the deposit request. Please try again.', type: 'error' });
+          return;
+        }
+      } catch {
+        setMessage({ text: 'Unable to reach the deposit review service. Please try again.', type: 'error' });
+        return;
+      }
+    }
+
     const result = deposit('Nagad', phone, val, cleanId);
     if (result.success) {
       setMessage({ text: result.message, type: 'success' });
@@ -94,17 +118,6 @@ export const CashierModal: React.FC<CashierModalProps> = ({
         }).catch((err) => console.warn('Firestore deposit sync warning:', err));
       }
 
-      // Send to backend for real-time admin dashboard tracking
-      if (token) {
-        fetch('/api/user/deposit-request', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ phone, amount: val, trxId: cleanId }),
-        }).catch((err) => console.error('Failed to log deposit request:', err));
-      }
     }
   };
 
@@ -235,7 +248,7 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                         <span>Nagad (নগদ)</span>
                         <span className="text-[10px] bg-[#f6921e] text-white px-1.5 py-0.2 rounded font-bold">Exclusive</span>
                       </div>
-                      <div className="text-xs text-amber-200/80">Instant Automated Cashier</div>
+                      <div className="text-xs text-amber-200/80">Manual Admin Review</div>
                     </div>
                   </div>
                   <div className="text-right">

@@ -144,11 +144,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const deposit = (method: PaymentMethod, phone: string, amount: number, trxId: string) => {
-    const isFirst = !firstDepositBonusClaimed;
-    const bonus = isFirst ? Math.min(amount, 10000) : 0;
-    const totalCredit = amount + bonus;
-    const nextBal = Math.round((balance + totalCredit) * 100) / 100;
-    const nextVip = vipPoints + Math.floor(amount / 10);
     const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
     const newTx: Transaction[] = [
@@ -157,34 +152,23 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         type: 'Deposit',
         method,
         amount,
-        status: 'Success',
+        status: 'Pending',
         date: dateStr,
         phone,
       },
-      ...(bonus > 0 ? [{
-        id: `BONUS-${trxId.substring(0, 6).toUpperCase()}`,
-        type: 'Welcome Bonus' as const,
-        method: 'Promo' as const,
-        amount: bonus,
-        status: 'Success' as const,
-        date: dateStr,
-      }] : []),
       ...transactions,
     ];
 
-    setBalance(nextBal);
     setTransactions(newTx);
-    setFirstDepositBonusClaimed(true);
-    setVipPoints(nextVip);
-    updateUserBalance(nextBal, nextVip);
-    sound.playBigWin();
-
-    saveState(nextBal, newTx, true, lastDailyBonusDate, nextVip, language, soundMuted);
+    // Deposits are intentionally not credited here. The balance and first
+    // deposit bonus are applied only after an administrator approves the
+    // pending request in the admin control panel.
+    saveState(balance, newTx, firstDepositBonusClaimed, lastDailyBonusDate, vipPoints, language, soundMuted);
 
     return {
       success: true,
-      message: `Successfully deposited ৳${amount.toLocaleString()}${bonus > 0 ? ` + ৳${bonus.toLocaleString()} 100% First Deposit Bonus!` : ''}`,
-      bonus,
+      message: `Deposit request of ৳${amount.toLocaleString()} submitted and is pending admin approval.`,
+      bonus: 0,
     };
   };
 
