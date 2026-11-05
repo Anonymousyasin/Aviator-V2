@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { broadcastSignal, processTelegramUpdate } from './server/telegram';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,41 @@ const PORT = 3000;
 const HOST = '0.0.0.0';
 
 app.use(express.json());
+
+function hasValidTelegramWebhookSecret(received: string | undefined): boolean {
+  const expected = process.env.TELEGRAM_WEBHOOK_SECRET || '';
+  if (!expected || !received) return false;
+  const expectedBuffer = Buffer.from(expected);
+  const receivedBuffer = Buffer.from(received);
+  return expectedBuffer.length === receivedBuffer.length && crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
+}
+
+app.post('/api/telegram/webhook', async (req: Request, res: Response) => {
+  if (!hasValidTelegramWebhookSecret(req.get('x-telegram-bot-api-secret-token'))) {
+    return res.status(401).json({ success: false, error: 'Invalid Telegram webhook secret.' });
+  }
+  try {
+    await processTelegramUpdate(req.body);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Telegram webhook processing failed:', error);
+    return res.status(500).json({ success: false, error: 'Unable to process Telegram update.' });
+  }
+});
+
+app.post('/api/telegram/signal', async (req: Request, res: Response) => {
+  const multiplier = Number(req.body?.multiplier);
+  if (!Number.isFinite(multiplier) || multiplier < 1.01 || multiplier > 500) {
+    return res.status(400).json({ success: false, error: 'Multiplier must be between 1.01x and 500x.' });
+  }
+  try {
+    const result = await broadcastSignal(multiplier);
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    console.error('Telegram signal broadcast failed:', error);
+    return res.status(503).json({ success: false, error: 'Telegram signal delivery is unavailable.' });
+  }
+});
 
 // Persistent storage setup
 const DATA_DIR = path.resolve(__dirname, 'data');
