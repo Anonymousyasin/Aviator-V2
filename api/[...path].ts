@@ -1,5 +1,6 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { app } from '../server';
 
-// Vercel's catch-all Node function forwards /api/* requests to the same
-// Express router used by the local development server.
-export default app;
+export default function api(req: VercelRequest, res: VercelResponse) {
+  return app(req, res);
+}
