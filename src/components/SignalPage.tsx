@@ -7,8 +7,6 @@ interface SignalPageProps {
   onBackToGame: () => void;
 }
 
-type FeedStatus = 'connecting' | 'live' | 'error';
-
 function formatTime(date: Date): string {
   return new Intl.DateTimeFormat('en', {
     hour: '2-digit',
@@ -34,20 +32,10 @@ function multiplierStyle(multiplier: number): string {
 
 export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
   const [signals, setSignals] = useState<LiveSignal[]>([]);
-  const [status, setStatus] = useState<FeedStatus>('connecting');
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    const unsubscribe = subscribeToSignals(
-      (nextSignals) => {
-        setSignals(nextSignals);
-        setStatus('live');
-      },
-      (error) => {
-        console.error('Live signal feed failed:', error);
-        setStatus('error');
-      },
-    );
+    const unsubscribe = subscribeToSignals((nextSignals) => setSignals(nextSignals));
     const timer = window.setInterval(() => setNow(Date.now()), 5_000);
     return () => {
       unsubscribe();
@@ -72,15 +60,9 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
           <ArrowLeft className="h-4 w-4" />
           Back to Aviator
         </button>
-        <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
-          status === 'live'
-            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-            : status === 'error'
-              ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
-              : 'border-amber-500/30 bg-amber-500/10 text-amber-200'
-        }`}>
-          <span className={`h-2 w-2 rounded-full ${status === 'live' ? 'animate-pulse bg-emerald-400' : status === 'error' ? 'bg-rose-400' : 'bg-amber-300'}`} />
-          {status === 'live' ? 'LIVE FEED' : status === 'error' ? 'FEED UNAVAILABLE' : 'CONNECTING'}
+        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-300">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+          LOCAL FEED
         </div>
       </div>
 
@@ -94,7 +76,7 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
             </div>
             <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Live Signals</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
-              New signal entries appear here as the game runs. This feed is simulated and is not a guarantee or a prediction of real-money game outcomes.
+              Signals from the game on this device appear here immediately and are saved in this browser. They do not sync to other devices. These simulated values are not guaranteed predictions of real-money game outcomes.
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
@@ -102,16 +84,10 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
               <Activity className="h-4 w-4 text-rose-300" />
               {signals.length} recent {signals.length === 1 ? 'signal' : 'signals'}
             </div>
-            <div className="mt-1 text-xs text-slate-500">Live updates · no refresh needed</div>
+            <div className="mt-1 text-xs text-slate-500">Saved locally · no refresh needed</div>
           </div>
         </div>
       </div>
-
-      {status === 'error' && (
-        <div className="mt-5 rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-200">
-          The live feed could not connect. Confirm the Firestore `signals` read and create rules have been deployed.
-        </div>
-      )}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-[#202737] bg-[#0e131d] p-4">
@@ -128,15 +104,15 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
           <div className="mt-2 font-mono text-3xl font-black tabular-nums text-white">
             {average === null ? '—' : `${average.toFixed(2)}x`}
           </div>
-          <div className="mt-1 text-xs text-slate-500">A simple view of recent feed values</div>
+          <div className="mt-1 text-xs text-slate-500">A simple view of recent local values</div>
         </div>
         <div className="rounded-2xl border border-[#202737] bg-[#0e131d] p-4">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Feed status</div>
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Storage</div>
           <div className="mt-2 flex items-center gap-2 text-xl font-black text-white">
-            <span className={`h-2.5 w-2.5 rounded-full ${status === 'live' ? 'animate-pulse bg-emerald-400' : status === 'error' ? 'bg-rose-400' : 'bg-amber-300'}`} />
-            {status === 'live' ? 'Connected' : status === 'error' ? 'Offline' : 'Connecting'}
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+            This browser
           </div>
-          <div className="mt-1 text-xs text-slate-500">{latestSignal ? `Latest update ${formatAge(latestSignal.createdAt, now)}` : 'Listening for live signals'}</div>
+          <div className="mt-1 text-xs text-slate-500">Up to 40 recent signals kept locally</div>
         </div>
       </div>
 
@@ -144,7 +120,7 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
         <div className="flex items-center justify-between border-b border-[#202737] px-4 py-4 sm:px-5">
           <div>
             <h2 className="font-black text-white">Recent signals</h2>
-            <p className="mt-1 text-xs text-slate-500">Most recent first</p>
+            <p className="mt-1 text-xs text-slate-500">Most recent first · stored on this device</p>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
             <Clock3 className="h-3.5 w-3.5" />
@@ -157,9 +133,9 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/5 text-rose-300">
               <TrendingUp className="h-5 w-5" />
             </div>
-            <p className="mt-4 font-bold text-white">No signals yet</p>
+            <p className="mt-4 font-bold text-white">No local signals yet</p>
             <p className="mt-1 max-w-sm text-sm text-slate-500">
-              Open Aviator to start the game. The next signal will appear here automatically.
+              Open Aviator and start the game. New signals will be saved in this browser and appear here automatically.
             </p>
             <button
               onClick={onBackToGame}
