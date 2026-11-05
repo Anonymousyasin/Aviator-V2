@@ -39,7 +39,7 @@ export const SignalLicenseGate: React.FC<SignalLicenseGateProps> = ({ onBackToGa
         }
       })
       .catch(() => {
-        if (mounted) setError('Could not verify the saved key. Check your connection and try again.');
+        if (mounted) setError('Secure key verification is unavailable in this browser. Please use an up-to-date browser.');
       })
       .finally(() => {
         if (mounted) setChecking(false);
@@ -61,7 +61,7 @@ export const SignalLicenseGate: React.FC<SignalLicenseGateProps> = ({ onBackToGa
       try { window.localStorage.setItem(SIGNAL_LICENSE_STORAGE_KEY, licenseKey.trim()); } catch { /* session remains authorized */ }
       setAuthorized(true);
     } catch {
-      setError('License validation is unavailable. Please try again in a moment.');
+      setError('Secure key verification is unavailable in this browser. Please use an up-to-date browser.');
     } finally {
       setSubmitting(false);
     }
@@ -96,7 +96,7 @@ export const SignalLicenseGate: React.FC<SignalLicenseGateProps> = ({ onBackToGa
         </div>
         <h1 className="mt-5 text-2xl font-black text-white">Signal access</h1>
         <p className="mt-2 text-sm leading-6 text-slate-400">
-          Enter one of the issued license keys to open the Signals page. Your key is checked securely by the app server.
+          Enter one of the issued license keys to open the Signals page. Verification works locally and does not require a server connection.
         </p>
 
         <form onSubmit={activate} className="mt-6 space-y-3">
