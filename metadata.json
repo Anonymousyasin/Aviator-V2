@@ -1,0 +1,6 @@
+{
+  "name": "Aviator Crash Bangladesh",
+  "description": "1:1 Spribe Aviator Crash clone with dual bet panels, real-time trajectory engine, live players feed, and instant bKash, Nagad & Rocket cashier in BDT.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

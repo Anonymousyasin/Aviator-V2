@@ -1,0 +1,24 @@
+[
+  {
+    "id": "user_demo_1001",
+    "email": "player@aviator.bd",
+    "name": "Shakib Gamer",
+    "passwordHash": "774452610ca42fce9ecb98f63cf131e59e3a50f7683f37fa61729c642eddf7bd9da1c8a6665623920029169714ee5752079ef22895c5edf7fa92a8d67cac111a",
+    "salt": "9230dc6854be6d083f345c735a522745",
+    "balance": 8500,
+    "vipPoints": 500,
+    "createdAt": "2026-11-05T00:13:37.762Z",
+    "status": "active"
+  },
+  {
+    "id": "user_1793837648596_614",
+    "email": "testuser@example.com",
+    "name": "Test Player",
+    "passwordHash": "67239777d239a2be7141808978ef8b044b69daeadf65878c6760e03d83a2403440d5ffe1eb406409a0ae2367d78f7651836804ffd0b392b0424c01dc0e835815",
+    "salt": "ebddd60354842b4b1c22e9552459481c",
+    "balance": 6250.5,
+    "vipPoints": 420,
+    "createdAt": "2026-11-05T00:14:08.596Z",
+    "status": "active"
+  }
+]

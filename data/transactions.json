@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ADM-478187",
+    "userId": "user_demo_1001",
+    "userEmail": "player@aviator.bd",
+    "userName": "Shakib Gamer",
+    "type": "Admin Credit",
+    "method": "System",
+    "phone": "SYSTEM",
+    "amount": 2000,
+    "status": "Approved",
+    "note": "VIP Loyalty Grant",
+    "createdAt": "2026-11-05T00:27:58.187Z"
+  },
+  {
+    "id": "DEP-982142",
+    "userId": "user_demo_1001",
+    "userEmail": "player@aviator.bd",
+    "userName": "Shakib Gamer",
+    "type": "Deposit",
+    "method": "Nagad",
+    "phone": "01712345678",
+    "amount": 1500,
+    "trxId": "9G7K2LMN8P",
+    "status": "Approved",
+    "createdAt": "2026-11-05T00:12:44.070Z",
+    "updatedAt": "2026-11-05T00:28:02.762Z"
+  },
+  {
+    "id": "WD-541290",
+    "userId": "user_demo_1001",
+    "userEmail": "player@aviator.bd",
+    "userName": "Shakib Gamer",
+    "type": "Withdraw",
+    "method": "Nagad",
+    "phone": "01712345678",
+    "amount": 1000,
+    "status": "Pending",
+    "createdAt": "2026-11-04T23:57:44.070Z"
+  }
+]

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Padma Palace – Demo Casino (BDT)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ctext y='.9em' font-size='9'%3E🪷%3C/text%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#06130e;--bg2:#0b2018;--cd:#102a20;--ln:#1f4636;--gd:#f5c242;--gd2:#ffe08a;--tx:#eef5f0;--mu:#8fa89b;--bk:#e2136e;--ng:#f6921e;--gr:#22c55e;--rd:#ef4444;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.35 "Segoe UI",Tahoma,Verdana,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}[hidden]{display:none!important}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:10px 16px;background:#081a13ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--ln)}
+.logo{font:700 22px Georgia,serif;color:var(--gd);cursor:pointer;white-space:nowrap}.logo i{font-style:normal}
+.sp{flex:1}.balb{background:#000a;border:1px solid var(--ln);border-radius:20px;padding:7px 14px;font-weight:700;color:var(--gd2);cursor:pointer}
+.b1,.b2{border:0;border-radius:18px;padding:8px 14px;font-weight:700}.b1{background:linear-gradient(#ffd75e,#e0a418);color:#2a1d00}.b2{background:transparent;border:1px solid var(--gd);color:var(--gd)}
+main{max-width:1180px;margin:auto;padding:14px 14px 90px}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:16px;padding:26px;background:radial-gradient(circle at 85% 40%,#f5c24244,transparent 45%),linear-gradient(120deg,#0e3b2a,#071f16);border:1px solid var(--ln)}
+.hero h1{font:700 clamp(24px,4.5vw,40px)/1.1 Georgia,serif;margin:0 0 8px}.hero h1 em{color:var(--gd);font-style:normal}.hero p{margin:0 0 14px;color:var(--mu)}.hero .art{font-size:clamp(50px,12vw,110px)}
+.tick{overflow:hidden;white-space:nowrap;margin:12px 0;background:var(--bg2);border-radius:10px;padding:8px 0;color:var(--mu);font-size:13px}
+.tick div{display:inline-block;animation:mq 60s linear infinite}.tick b{color:var(--gd2)}.tick span{margin:0 22px}@keyframes mq{to{transform:translateX(-50%)}}
+.promos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px}
+.pr{background:var(--cd);border:1px solid var(--ln);border-radius:12px;padding:14px}.pr b{color:var(--gd)}.pr p{margin:4px 0 10px;color:var(--mu);font-size:13px}
+.tabs{display:flex;gap:8px;overflow:auto;margin:6px 0 12px}.tabs button{background:var(--cd);border:1px solid var(--ln);border-radius:18px;padding:7px 16px;white-space:nowrap}.tabs .on{background:var(--gd);color:#2a1d00;border-color:var(--gd);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.gc{position:relative;aspect-ratio:4/5;border-radius:14px;overflow:hidden;border:1px solid #fff2;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;text-align:left;transition:transform .15s}
+.gc:hover{transform:translateY(-4px)}.gc .ic{position:absolute;top:14%;left:0;right:0;text-align:center;font-size:64px;filter:drop-shadow(0 6px 10px #0008)}
+.gc b{font-size:16px;text-shadow:0 1px 4px #000}.gc small{opacity:.8}.gc .tg{position:absolute;top:8px;left:8px;background:#000a;border-radius:8px;padding:2px 8px;font-size:11px}
+.gc.hot:after{content:"HOT";position:absolute;top:8px;right:8px;background:var(--rd);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700}
+footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--ln);color:var(--mu);font-size:12px;text-align:center}
+.pay{display:flex;gap:8px;justify-content:center;margin-bottom:10px}.chip{padding:4px 12px;border-radius:8px;font-weight:700;color:#fff}.chip.bk{background:var(--bk)}.chip.ng{background:var(--ng)}
+/* game */
+.gh{display:flex;align-items:center;gap:12px;margin-bottom:12px}.gh h2{margin:0;font:700 22px Georgia,serif}
+.gl{display:grid;grid-template-columns:310px 1fr;gap:12px}
+#ctl{background:var(--cd);border:1px solid var(--ln);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;align-self:start}
+#stage{position:relative;background:radial-gradient(circle at 50% 0,#12392a,#07170f);border:1px solid var(--ln);border-radius:14px;min-height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;overflow:hidden}
+label{color:var(--mu);font-size:12px;display:block;margin-bottom:4px}label b{color:var(--gd2)}
+input,select{width:100%;background:#000a;border:1px solid var(--ln);border-radius:10px;color:#fff;padding:10px;font:inherit;font-weight:700}
+.bi{display:flex;gap:6px}.bi input{flex:1;min-width:0}.bi button,.chips button{background:#ffffff14;border:0;border-radius:8px;padding:0 10px}
+.chips{display:flex;gap:6px;margin:8px 0}.chips button{flex:1;padding:8px}
+input[type=range]{padding:0;accent-color:var(--gd)}
+.pl{width:100%;border:0;border-radius:12px;padding:14px;font-weight:800;font-size:16px;background:linear-gradient(#34d366,#16a34a);color:#052e12}.pl:disabled{opacity:.5}.pl.o{background:linear-gradient(#ffd75e,#e0a418);color:#2a1d00}
+.seg{display:flex;background:#000a;border-radius:10px;padding:3px;gap:3px}.seg button{flex:1;border:0;background:none;border-radius:8px;padding:8px;color:var(--mu)}.seg .on{background:var(--gd);color:#2a1d00;font-weight:700}
+.two{display:flex;gap:8px;margin-top:8px}.two button{flex:1;padding:12px;border:0;border-radius:10px;background:#ffffff1c;font-weight:700}.two button:disabled{opacity:.4}
+.big{font:900 clamp(40px,9vw,80px)/1 Georgia,serif}.ov{position:absolute;pointer-events:none;text-shadow:0 4px 24px #000}.msg{min-height:22px;font-weight:700;text-align:center}.msg.w{color:var(--gr)}.msg.l{color:var(--rd)}
+#cc,#pc{width:100%;max-width:520px}#cc{position:absolute;inset:0;height:100%;max-width:none}
+.chs{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:5px;overflow:hidden;z-index:2}.chs b{background:#000a;border-radius:10px;padding:2px 8px;font-size:12px}
+.mg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(420px,100%)}.mg button{aspect-ratio:1;border:0;border-radius:10px;background:#1b4a37;font-size:28px;box-shadow:inset 0 -4px #0004}.mg button.o{background:#0a2a1d}.mg button.m{background:#5b1620}
+.reels{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:8px;width:min(480px,100%)}.rl{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,8vw,60px);background:linear-gradient(#fff,#d9e6df);border-radius:12px;border:3px solid var(--gd);box-shadow:inset 0 0 18px #0006}
+.pt{font-size:12px;color:var(--mu);text-align:center;max-width:480px}
+.cardx{width:130px;height:180px;background:#fff;color:#111;border-radius:12px;display:flex;align-items:center;justify-content:center;font:800 54px Georgia,serif;box-shadow:0 8px 24px #000a}.cardx.r{color:#d11}
+.rn{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:900 52px Georgia;border:6px solid var(--gd)}
+.cn{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:56px;background:radial-gradient(#ffe08a,#c98a0a);border:5px solid #fff6}.cn.f{animation:fl .8s}@keyframes fl{to{transform:rotateY(1260deg)}}
+.opts{display:flex;flex-wrap:wrap;gap:6px}.opts button{flex:1 1 30%;padding:9px 4px;border:1px solid var(--ln);background:#0006;border-radius:8px}.opts .on{background:var(--gd);color:#2a1d00;font-weight:700}
+/* modal */
+#modal{position:fixed;inset:0;z-index:50;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px}
+#mb{width:min(440px,100%);max-height:92vh;overflow:auto;background:var(--bg2);border:1px solid var(--ln);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.mh{display:flex;align-items:center;gap:10px}.mh b{font-size:18px;flex:1}.mh span{color:var(--gd2);font-weight:700}.mh button{background:none;border:0;font-size:18px}
+.mths{display:flex;gap:8px}.mt{flex:1;padding:12px;border-radius:12px;border:2px solid transparent;font-weight:800;color:#fff;opacity:.55}.mt.on{opacity:1;border-color:#fff}.mt.bk{background:var(--bk)}.mt.ng{background:var(--ng)}
+.tr{display:flex;justify-content:space-between;padding:10px;background:#0006;border-radius:10px}.tr small{display:block;color:var(--mu)}.tr div:last-child{text-align:right;font-weight:700}.Success{color:var(--gr)}.Pending{color:var(--gd)}
+.note{background:#000a;border-radius:10px;padding:10px;font-size:12px;color:var(--mu)}
+#toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--gr);color:#052e12;font-weight:700;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}#toast.on{opacity:1}#toast.e{background:var(--rd);color:#fff}
+.bn{display:none;position:fixed;bottom:0;left:0;right:0;z-index:20;background:#081a13;border-top:1px solid var(--ln);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}.bn button{flex:1;background:none;border:0;padding:6px;color:var(--mu);font-size:12px}.bn span{display:block;font-size:20px}
+@media(max-width:800px){.gl{grid-template-columns:1fr}#ctl{order:2}.bn{display:flex}header .b2{display:none}.hero .art{display:none}}
+</style></head><body>
+<header><div class="logo" onclick="home()"><i>🪷</i> Padma Palace</div><div class="sp"></div>
+<div class="balb" id="bal" onclick="wallet('dep')"></div><button class="b2" onclick="wallet('wd')">Withdraw</button><button class="b1" onclick="wallet('dep')">Deposit</button></header>
+<main id="lobby">
+<section class="hero"><div><h1>Welcome bonus <em>100%</em> up to ৳10,000</h1><p>Instant bKash &amp; Nagad deposits · 10 originals &amp; slots · Demo credits only</p><button class="b1" onclick="wallet('dep')">Deposit now</button></div><div class="art">🎰</div></section>
+<div class="tick"><div id="tk"></div></div>
+<section class="promos">
+<div class="pr"><b>🎁 Daily free credits</b><p>Claim ৳100 demo credits every day.</p><button class="b2" onclick="daily()">Claim ৳100</button></div>
+<div class="pr"><b>💸 Weekly cashback 5%</b><p>Get a slice of your weekly losses back (demo).</p></div>
+<div class="pr"><b>⚡ Fast mobile wallets</b><p>Deposit from ৳200 · Withdraw from ৳500 via bKash or Nagad.</p></div></section>
+<div class="tabs" id="tabs"></div><div class="grid" id="grid"></div>
+<footer><div class="pay"><span class="chip bk">bKash</span><span class="chip ng">Nagad</span></div>
+18+ · Prototype with virtual ৳ credits only. No real payments are processed. bKash and Nagad are trademarks of their owners and are used here only to illustrate a payment flow.</footer>
+</main>
+<main id="game" hidden><div class="gh"><button class="b2" onclick="home()">← Lobby</button><h2 id="gt"></h2></div>
+<div class="gl"><aside id="ctl"><div><label>Bet amount (৳) · min 10</label><div class="bi"><input id="ba" value="100" inputmode="decimal"><button data-k="h">½</button><button data-k="d">2×</button><button data-k="m">Max</button></div></div><div id="opts"></div><div id="act"></div></aside><section id="stage"></section></div></main>
+<div id="modal" hidden><div id="mb"></div></div><div id="toast"></div>
+<nav class="bn"><button onclick="home()"><span>🏠</span>Home</button><button onclick="wallet('dep')"><span>➕</span>Deposit</button><button onclick="wallet('wd')"><span>💸</span>Withdraw</button><button onclick="wallet('hs')"><span>🧾</span>History</button></nav>
+<script>
+const $=s=>document.querySelector(s),R=Math.random;
+let ST={bal:5000,tx:[],fd:0,dc:''};try{Object.assign(ST,JSON.parse(localStorage.getItem('pp3')||'{}'))}catch(e){}
+ST.tx.forEach(t=>{if(t.s=='Pending')t.s='Success'});
+const save=()=>{try{localStorage.setItem('pp3',JSON.stringify(ST))}catch(e){}};
+const F=n=>'৳'+(+n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function bal(d){ST.bal=Math.round((ST.bal+d)*100)/100;save();$('#bal').textContent=F(ST.bal)}
+let tt;function toast(m,e){const t=$('#toast');t.textContent=m;t.className='on'+(e?' e':'');clearTimeout(tt);tt=setTimeout(()=>t.className='',2400)}
+const say=(m,w)=>{const e=$('#msg');if(e){e.textContent=m;e.className='msg '+(w===1?'w':w===0?'l':'')}};
+function take(){const v=parseFloat($('#ba').value);if(!(v>=10)){toast('Minimum bet is ৳10',1);return 0}if(v>50000){toast('Maximum bet is ৳50,000',1);return 0}if(v>ST.bal){toast('Not enough balance. Deposit with bKash or Nagad.',1);return 0}bal(-v);return v}
+const pay=(a,x)=>{const w=a*x;if(w>0)bal(w);return w};
+$('#ctl').onclick=e=>{const k=e.target.dataset.k;if(!k)return;const i=$('#ba'),v=parseFloat(i.value)||10;i.value=(k=='h'?Math.max(10,v/2):k=='d'?Math.min(50000,v*2):Math.min(50000,ST.bal)).toFixed(2)};
+/* ---------- games ---------- */
+const G={};let cleanup=null;
+const wt=(p,s)=>p?`<span class=r>${s}</span>`:s;
+G.crash={n:'Aviator Crash',c:'Crash',i:'✈️',g:'linear-gradient(140deg,#7f1d1d,#e11d48)',hot:1,init(s){
+ s.innerHTML='<div class=chs id=chs></div><canvas id=cc></canvas><div class="big ov" id=cm>—</div>';
+ $('#opts').innerHTML='<label>Auto cash out (×)</label><input id=ac value="2.00">';$('#act').innerHTML='<button class=pl id=go>Bet</button>';
+ const cv=$('#cc'),x=cv.getContext('2d'),go=$('#go'),gen=()=>Math.min(500,Math.max(1,Math.floor(97/(1-R()))/100));
+ let ph=0,m=1,cp=2,t0=0,wt=performance.now()+4000,b=0,h=[],raf;
+ const cash=v=>{const w=pay(b,v);toast(`Cashed out at ${v.toFixed(2)}x · +${F(w)}`);b=0};
+ go.onclick=()=>{if(ph==0){if(b){bal(b);b=0}else b=take()}else if(ph==1&&b)cash(Math.floor(m*100)/100)};
+ function loop(now){const W=cv.clientWidth,H=cv.clientHeight;if(cv.width!=W*2){cv.width=W*2;cv.height=H*2}x.setTransform(2,0,0,2,0,0);x.clearRect(0,0,W,H);
+  let T=0;
+  if(ph==0){const l=wt-now;$('#cm').textContent='Next round in '+Math.max(0,l/1000).toFixed(1)+'s';$('#cm').style.color='#fff';if(l<=0){ph=1;t0=now;cp=gen()}}
+  if(ph==1){T=(now-t0)/1e3;m=Math.exp(.075*T);const ac=parseFloat($('#ac').value);if(b&&ac>=1.01&&ac<=cp&&m>=ac)cash(ac);
+   if(m>=cp){m=cp;ph=2;h.unshift(cp);if(b){toast(`Flew away at ${cp.toFixed(2)}x`,1);b=0}$('#chs').innerHTML=h.slice(0,14).map(v=>`<b style="color:${v<2?'#34b4ff':v<10?'#b57bff':'#ff4fd8'}">${v.toFixed(2)}x</b>`).join('');setTimeout(()=>{ph=0;wt=performance.now()+4000;m=1},3200)}
+   $('#cm').textContent=m.toFixed(2)+'x'}
+  if(ph==2){T=Math.log(cp)/.075;$('#cm').textContent='FLEW AWAY! '+cp.toFixed(2)+'x';$('#cm').style.color='#ff4d6d'}
+  const ox=34,oy=H-30,XT=Math.max(T,5),YM=Math.max(m,2),pt=t=>[ox+t/XT*(W-ox-80),oy-((Math.exp(.075*t)-1)/(YM-1))*(H-oy+30-90)];
+  x.fillStyle='#fff3';for(let i=ox;i<W;i+=36){x.fillRect(i,H-12,2,2)}for(let i=oy;i>0;i-=36)x.fillRect(12,i,2,2);
+  let e=[ox,oy],pv=e;if(T>0){x.beginPath();x.moveTo(ox,oy);for(let i=1;i<=60;i++){pv=e;e=pt(T*i/60);x.lineTo(e[0],e[1])}x.strokeStyle='#e50539';x.lineWidth=4;x.stroke();x.lineTo(e[0],oy);x.fillStyle='#e5053938';x.fill()}
+  x.save();let px=e[0],py=e[1],a=Math.atan2(e[1]-pv[1],e[0]-pv[0]);if(ph==2){const d=(now-t0-T*1e3)/1e3;}x.translate(px,py);x.rotate(a+Math.PI/4);x.font='40px serif';x.textAlign='center';x.textBaseline='middle';x.fillText('✈️',0,0);x.restore();
+  go.className='pl'+(b&&ph==1?' o':'');go.textContent=ph==0?(b?'Cancel bet':'Bet'):ph==1?(b?'Cash out '+F(b*m):'Waiting for next round'):'Round over';go.disabled=ph==2;
+  raf=requestAnimationFrame(loop)}
+ raf=requestAnimationFrame(loop);cleanup=()=>cancelAnimationFrame(raf)}};
+G.mines={n:'Mines',c:'Instant',i:'💎',g:'linear-gradient(140deg,#14532d,#0891b2)',hot:1,init(s){
+ s.innerHTML='<div class=mg id=mg></div><div class=msg id=msg>Choose mines and start</div>';
+ $('#opts').innerHTML='<label>Mines</label><select id=mc><option>1<option selected>3<option>5<option>10<option>20</select>';$('#act').innerHTML='<button class=pl id=go>Start game</button>';
+ let on=0,bet=0,ms=[],op=0,mc=3;const g=$('#mg'),go=$('#go');
+ g.innerHTML=Array(25).fill('<button></button>').join('');const bt=[...g.children];
+ const mu=k=>{let v=.97;for(let i=0;i<k;i++)v*=(25-i)/(25-mc-i);return v};
+ const end=()=>{on=0;$('#mc').disabled=false;go.textContent='Start game';go.className='pl'};
+ const cash=()=>{const w=pay(bet,mu(op));say(`Cashed out ${mu(op).toFixed(2)}x · +${F(w)}`,1);bt.forEach((b,i)=>{if(ms.includes(i)){b.textContent='��';b.className='m'}});end()};
+ go.onclick=()=>{if(on){if(op)cash();return}bet=take();if(!bet)return;mc=+$('#mc').value;ms=[];while(ms.length<mc){const r=R()*25|0;if(!ms.includes(r))ms.push(r)}op=0;on=1;$('#mc').disabled=true;bt.forEach(b=>{b.textContent='';b.className=''});say('Pick a tile');go.textContent='Cash out';go.className='pl o'};
+ bt.forEach((b,i)=>b.onclick=()=>{if(!on||b.classList.contains('o'))return;
+  if(ms.includes(i)){bt.forEach((q,j)=>{if(ms.includes(j)){q.textContent='💣';q.className='m'}});say('Boom! You lost '+F(bet),0);end()}
+  else{b.textContent='💎';b.className='o';op++;say(`${mu(op).toFixed(2)}x · ${F(bet*mu(op))}`,1);go.textContent='Cash out '+F(bet*mu(op));if(op==25-mc)cash()}})}};
+G.plinko={n:'Plinko',c:'Instant',i:'🔴',g:'linear-gradient(140deg,#581c87,#db2777)',init(s){
+ s.innerHTML='<canvas id=pc width=460 height=440></canvas><div class=msg id=msg>Drop a ball</div>';$('#act').innerHTML='<button class=pl id=go>Drop ball</button>';
+ const M=[15,5.5,2,1.1,.7,.4,.7,1.1,2,5.5,15],cv=$('#pc'),x=cv.getContext('2d'),balls=[];let raf;
+ $('#go').onclick=()=>{const b=take();if(!b)return;let k=0;const p=[0];for(let i=0;i<10;i++){k+=R()<.5?1:0;p.push(k)}balls.push({b,p,t:performance.now()})};
+ const P=(r,k)=>[230+(k-r/2)*34,30+r*34];
+ function loop(now){x.clearRect(0,0,460,440);x.fillStyle='#ffffffcc';for(let r=0;r<10;r++)for(let j=0;j<r+2;j++){x.beginPath();x.arc(230+(j-(r+1)/2)*34,30+(r+.5)*34,3,0,7);x.fill()}
+  M.forEach((m,k)=>{const q=P(10,k);x.fillStyle=m>=5?'#e11d48':m>=1?'#f59e0b':'#475569';x.fillRect(q[0]-15,376,30,26);x.fillStyle='#fff';x.font='bold 11px sans-serif';x.textAlign='center';x.fillText(m+'x',q[0],393)});
+  for(let i=balls.length-1;i>=0;i--){const B=balls[i],s=(now-B.t)/170;if(s>=10){const m=M[B.p[10]],w=pay(B.b,m);say(`${m}x · ${w>=B.b?'+':''}${F(w)}`,m>=1?1:0);balls.splice(i,1);continue}
+   const r=s|0,f=s-r,a=P(r,B.p[r]),c=P(r+1,B.p[r+1]);x.fillStyle='#ffd75e';x.beginPath();x.arc(a[0]+(c[0]-a[0])*f,a[1]+(c[1]-a[1])*f-Math.sin(f*Math.PI)*9,7,0,7);x.fill()}
+  raf=requestAnimationFrame(loop)}
+ raf=requestAnimationFrame(loop);cleanup=()=>cancelAnimationFrame(raf)}};
+G.dice={n:'Dice',c:'Instant',i:'🎲',g:'linear-gradient(140deg,#1e3a8a,#6366f1)',init(s){let t=50,ov=0,busy=0;
+ s.innerHTML='<div class=big id=r>0.00</div><div class=msg id=msg>Set your target and roll</div>';
+ $('#opts').innerHTML='<label>Target <b id=tv>50</b> · win chance <b id=ch></b> · pays <b id=px></b></label><input type=range id=sl min=5 max=95 value=50><div class=seg style="margin-top:8px"><button class=on data-o=0>Roll under</button><button data-o=1>Roll over</button></div>';
+ $('#act').innerHTML='<button class=pl id=go>Roll</button>';
+ const ch=()=>ov?100-t:t,px=()=>97/ch(),up=()=>{$('#tv').textContent=t;$('#ch').textContent=ch()+'%';$('#px').textContent=px().toFixed(2)+'x'};up();
+ $('#sl').oninput=e=>{t=+e.target.value;up()};
+ document.querySelectorAll('#opts .seg button').forEach(b=>b.onclick=()=>{ov=+b.dataset.o;document.querySelectorAll('#opts .seg button').forEach(q=>q.classList.toggle('on',q==b));up()});
+ $('#go').onclick=()=>{if(busy)return;const b=take();if(!b)return;busy=1;const r=R()*100;let n=0;const iv=setInterval(()=>{$('#r')&&($('#r').textContent=(R()*100).toFixed(2));if(++n>8){clearInterval(iv);$('#r')&&($('#r').textContent=r.toFixed(2));const w=ov?r>t:r<t;if(w){const p=pay(b,px());say('You won '+F(p),1)}else say('You lost '+F(b),0);busy=0}},60)}}};
+G.limbo={n:'Limbo',c:'Instant',i:'🚀',g:'linear-gradient(140deg,#0f766e,#22d3ee)',init(s){let busy=0;
+ s.innerHTML='<div class=big id=r>1.00x</div><div class=msg id=msg>Beat your target multiplier</div>';
+ $('#opts').innerHTML='<label>Target multiplier (×)</label><input id=tg value="2.00">';$('#act').innerHTML='<button class=pl id=go>Bet</button>';
+ $('#go').onclick=()=>{if(busy)return;const t=parseFloat($('#tg').value);if(!(t>=1.01&&t<=1000)){toast('Target must be 1.01 – 1000',1);return}const b=take();if(!b)return;busy=1;
+  const res=Math.max(1,Math.floor(97/(1-R()))/100),st=performance.now();
+  (function f(n){const k=Math.min(1,(n-st)/800),v=1+(Math.min(res,200)-1)*k*k;$('#r')&&($('#r').textContent=(k<1?v:res).toFixed(2)+'x');if(k<1)requestAnimationFrame(f);else{if(res>=t){say('You won '+F(pay(b,t)),1)}else say('You lost '+F(b),0);busy=0}})(st)}}};
+G.coin={n:'Coin Flip',c:'Instant',i:'🪙',g:'linear-gradient(140deg,#854d0e,#facc15)',init(s){let side=0,busy=0;
+ s.innerHTML='<div class=cn id=cn>🪙</div><div class=msg id=msg>Pick a side · pays 1.96x</div>';
+ $('#opts').innerHTML='<div class=seg><button class=on data-s=0>Heads</button><button data-s=1>Tails</button></div>';$('#act').innerHTML='<button class=pl id=go>Flip</button>';
+ document.querySelectorAll('#opts .seg button').forEach(b=>b.onclick=()=>{side=+b.dataset.s;document.querySelectorAll('#opts .seg button').forEach(q=>q.classList.toggle('on',q==b))});
+ $('#go').onclick=()=>{if(busy)return;const b=take();if(!b)return;busy=1;const r=R()<.5?0:1,c=$('#cn');c.className='cn f';setTimeout(()=>{if(!$('#cn'))return;c.className='cn';c.textContent=r?'🌙':'👑';if(r==side)say('You won '+F(pay(b,1.96)),1);else say('You lost '+F(b),0);busy=0},850)}}};
+G.hilo={n:'Hi-Lo Cards',c:'Table',i:'🃏',g:'linear-gradient(140deg,#1f2937,#b91c1c)',init(s){let cur,m=1,on=0,bet=0;
+ const rk=v=>['A',2,3,4,5,6,7,8,9,10,'J','Q','K'][v-1];
+ s.innerHTML='<div class=cardx id=cd>?</div><div class=msg id=msg>Deal a card to start</div>';
+ $('#act').innerHTML='<button class=pl id=go>Deal</button><div class=two><button id=hi disabled>Higher</button><button id=lo disabled>Lower</button></div>';
+ const show=v=>{const su='♠♥♦♣'[R()*4|0];$('#cd').textContent=rk(v)+su;$('#cd').className='cardx'+(su=='♥'||su=='♦'?' r':'')};
+ const lock=l=>{$('#hi').disabled=$('#lo').disabled=l};
+ const end=()=>{on=0;lock(1);$('#go').textContent='Deal';$('#go').className='pl'};
+ $('#go').onclick=()=>{if(on){const w=pay(bet,m);say(`Cashed out ${m.toFixed(2)}x · +${F(w)}`,1);end();return}bet=take();if(!bet)return;m=1;on=1;cur=1+R()*13|0;show(cur);lock(0);say('Higher or lower? Ties win.');$('#go').textContent='Cash out';$('#go').className='pl o';$('#go').disabled=1};
+ const g=h=>{const chance=h?(14-cur)/13:cur/13,st=.97/chance,n=1+R()*13|0,w=h?n>=cur:n<=cur;show(n);if(w){m*=st;cur=n;say(`Correct! ${m.toFixed(2)}x · ${F(bet*m)}`,1);$('#go').disabled=0;$('#go').textContent='Cash out '+F(bet*m)}else{say('Wrong card. You lost '+F(bet),0);end()}};
+ $('#hi').onclick=()=>g(1);$('#lo').onclick=()=>g(0)}};
+G.roul={n:'Lucky Roulette',c:'Table',i:'🎡',g:'linear-gradient(140deg,#7f1d1d,#14532d)',init(s){let sel='r',busy=0;const RD=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+ s.innerHTML='<div class=rn id=rn style="background:#14532d">0</div><div class=msg id=msg>Place your bet</div>';
+ const O={r:['Red 2x'],b:['Black 2x'],o:['Odd 2x'],e:['Even 2x'],l:['1–18 2x'],h:['19–36 2x'],g:['Green 36x']},X={g:36};
+ $('#opts').innerHTML='<div class=opts>'+Object.keys(O).map(k=>`<button data-k=${k} class="${k=='r'?'on':''}">${O[k]}</button>`).join('')+'</div>';$('#act').innerHTML='<button class=pl id=go>Spin</button>';
+ document.querySelectorAll('#opts button').forEach(b=>b.onclick=()=>{sel=b.dataset.k;document.querySelectorAll('#opts button').forEach(q=>q.classList.toggle('on',q==b))});
+ const cl=n=>n==0?'#15803d':RD.includes(n)?'#b91c1c':'#111';
+ $('#go').onclick=()=>{if(busy)return;const b=take();if(!b)return;busy=1;const n=R()*37|0;let i=0;const iv=setInterval(()=>{const e=$('#rn');if(!e){clearInterval(iv);busy=0;return}const v=++i>14?n:R()*37|0;e.textContent=v;e.style.background=cl(v);if(i>14){clearInterval(iv);
+  const w={r:RD.includes(n),b:n&&!RD.includes(n),o:n%2==1,e:n&&n%2==0,l:n>=1&&n<=18,h:n>=19,g:n==0}[sel];if(w)say('You won '+F(pay(b,X[sel]||2)),1);else say('You lost '+F(b),0);busy=0}},90)}}};
+function slots(c){return{n:c.n,c:'Slots',i:c.i,g:c.g,hot:c.hot,init(s){const SY=c.sy,n=c.r,tot=c.w.reduce((a,b)=>a+b);let busy=0;
+ s.innerHTML=`<div class=reels style="--n:${n}">`+Array(n).fill('<div class=rl>'+SY[0]+'</div>').join('')+'</div><div class=msg id=msg>Match symbols from the left to win</div><div class=pt>'+c.t+'</div>';$('#act').innerHTML='<button class=pl id=go>Spin</button>';
+ const pk=()=>{let r=R()*tot,i=0;while((r-=c.w[i])>=0)i++;return i},rl=[...document.querySelectorAll('.rl')];
+ $('#go').onclick=()=>{if(busy)return;const b=take();if(!b)return;busy=1;say('Spinning…');const res=rl.map(pk),stop=rl.map(()=>0);
+  const iv=setInterval(()=>rl.forEach((e,j)=>{if(!stop[j])e.textContent=SY[R()*SY.length|0]}),70);
+  rl.forEach((e,j)=>setTimeout(()=>{stop[j]=1;e.textContent=SY[res[j]];if(j==n-1){clearInterval(iv);let k=1;while(k<n&&res[k]==res[0])k++;const x=k==2?1.6:k>=3?c.b[res[0]]*c.m[k]:0;
+   if(x){say(`${k} in a row · ${x.toFixed(2)}x · +${F(pay(b,x))}`,1)}else say('No win. Spin again!',0);busy=0}},700+j*380))}}}}
+G.s1=slots({n:'Golden Fortune',i:'🍀',g:'linear-gradient(140deg,#78350f,#f59e0b)',hot:1,r:3,sy:['🍒','🍋','🔔','🍀','💎','7️⃣'],w:[30,25,20,13,8,4],b:[8,12,20,40,80,200],m:{3:1},t:'3 in a row: 🍒8x 🍋12x 🔔20x 🍀40x 💎80x 7️⃣200x · First 2 match: 1.6x'});
+G.s2=slots({n:'Dragon Gold 5×1',i:'🐉',g:'linear-gradient(140deg,#7f1d1d,#ea580c)',r:5,sy:['🪙','🏮','🧧','🐲','👑','🐉'],w:[30,25,20,13,8,4],b:[8,12,20,40,80,200],m:{3:.6,4:1.6,5:4},t:'3 / 4 / 5 in a row from the left pays 0.6× / 1.6× / 4× the symbol value · First 2 match: 1.6x'});
+/* ---------- lobby ---------- */
+let cat='All';const CATS=['All','Crash','Slots','Instant','Table'];
+function lobby(){$('#tabs').innerHTML=CATS.map(c=>`<button class="${c==cat?'on':''}" onclick="cat='${c}';lobby()">${c}</button>`).join('');
+ $('#grid').innerHTML=Object.keys(G).filter(k=>cat=='All'||G[k].c==cat).map(k=>`<button class="gc ${G[k].hot?'hot':''}" style="background:${G[k].g}" onclick="play('${k}')"><span class=tg>${G[k].c}</span><span class=ic>${G[k].i}</span><b>${G[k].n}</b><small>Padma Originals</small></button>`).join('')}
+function play(k){if(cleanup)cleanup();cleanup=null;$('#lobby').hidden=true;$('#game').hidden=false;$('#gt').textContent=G[k].n;$('#opts').innerHTML='';$('#act').innerHTML='';$('#stage').innerHTML='';G[k].init($('#stage'));scrollTo(0,0)}
+function home(){if(cleanup)cleanup();cleanup=null;$('#game').hidden=true;$('#lobby').hidden=false;$('#modal').hidden=true}
+function daily(){const d=new Date().toDateString();if(ST.dc==d){toast('Already claimed today. Come back tomorrow!',1);return}ST.dc=d;bal(100);ST.tx.unshift({id:'DAILY',t:'Daily bonus',m:'Promo',a:100,s:'Success',d:new Date().toLocaleString()});save();toast('৳100 credited!')}
+const N=['Rahim','Sumi','Tanvir','Mitu','Arif','Nusrat','Hasan','Rony','Joya','Sajib'],GN=Object.values(G).map(g=>g.n);
+$('#tk').innerHTML=(h=>h+h)(Array.from({length:18},()=>`<span>🏆 <b>${N[R()*10|0]}***${R()*90+10|0}</b> won <b>${F(Math.round(R()*R()*60000+300))}</b> on ${GN[R()*GN.length|0]}</span>`).join(''));
+/* ---------- wallet ---------- */
+let W={t:'dep',m:'bKash',s:0,amt:'',no:''};
+function wallet(t){if(t)W.t=t;W.s=0;$('#modal').hidden=false;dw()}
+const cw=()=>$('#modal').hidden=true;
+function dw(){const d=W.t=='dep',hs=W.t=='hs',tb=(k,l)=>`<button class="${W.t==k?'on':''}" data-a=t data-v=${k}>${l}</button>`;
+ let h=`<div class=mh><b>Wallet</b><span>${F(ST.bal)}</span><button data-a=x>✕</button></div><div class=seg>${tb('dep','Deposit')}${tb('wd','Withdraw')}${tb('hs','History')}</div>`;
+ if(hs)h+=ST.tx.length?ST.tx.slice(0,40).map(t=>`<div class=tr><div><b>${t.t}</b><small>${t.m} · ${t.id} · ${t.d}</small></div><div>${t.t=='Withdraw'?'−':'+'}${F(t.a)}<small class=${t.s}>${t.s}</small></div></div>`).join(''):'<div class=note>No transactions yet.</div>';
+ else{h+=`<div class=mths><button class="mt bk ${W.m=='bKash'?'on':''}" data-a=m data-v=bKash>bKash</button><button class="mt ng ${W.m=='Nagad'?'on':''}" data-a=m data-v=Nagad>Nagad</button></div>`;
+  if(!W.s)h+=`<div><label>${W.m} number</label><input id=wn placeholder="01XXXXXXXXX" value="${W.no}" inputmode=numeric maxlength=11></div><div><label>Amount (৳) · ${d?'min 200 · max 50,000':'min 500'}</label><input id=wa value="${W.amt}" inputmode=numeric><div class=chips>${[500,1000,2000,5000].map(v=>`<button data-a=c data-v=${v}>${v}</button>`).join('')}</div></div>${d&&!ST.fd?'<div class=note>🎁 First deposit bonus: +100% up to ৳10,000</div>':''}<button class="pl o" data-a=n>${d?'Continue':'Request withdrawal'}</button>`;
+  else h+=`<div class=note>Demo payment. Open ${W.m}, choose <b>Send Money</b> to <b>01700-000000</b> (merchant) for <b>${F(W.amt)}</b>, then enter the Transaction ID below. Nothing is actually charged.</div><div><label>${W.m} TrxID</label><input id=wt placeholder="e.g. 9H7K2LMN4P" maxlength=12></div><button class="pl o" data-a=ok>Confirm deposit</button>`}
+ $('#mb').innerHTML=h}
+$('#modal').onclick=e=>{if(e.target.id=='modal'){cw();return}const b=e.target.closest('[data-a]');if(!b)return;if($('#wn')){W.no=$('#wn').value;W.amt=$('#wa').value}const a=b.dataset.a,v=b.dataset.v;
+ if(a=='x')cw();else if(a=='t'){W.t=v;W.s=0;dw()}else if(a=='m'){W.m=v;dw()}else if(a=='c'){W.amt=v;dw()}
+ else if(a=='n'){const d=W.t=='dep',am=+W.amt;if(!/^01[3-9]\d{8}$/.test(W.no))return toast('Enter a valid 11-digit mobile number',1);
+  if(!(am>=(d?200:500))||am>(d?50000:1e6))return toast(d?'Deposit between ৳200 and ৳50,000':'Minimum withdrawal is ৳500',1);
+  if(d){W.s=1;dw()}else{if(am>ST.bal)return toast('Insufficient balance',1);bal(-am);const t={id:'WD'+(R()*1e8|0),t:'Withdraw',m:W.m,a:am,s:'Pending',d:new Date().toLocaleString()};ST.tx.unshift(t);save();W.amt='';W.t='hs';dw();toast('Withdrawal requested');setTimeout(()=>{t.s='Success';save();if(!$('#modal').hidden&&W.t=='hs')dw()},5000)}}
+ else if(a=='ok'){const id=$('#wt').value.trim().toUpperCase();if(id.length<8)return toast('TrxID must be at least 8 characters',1);const am=+W.amt,bo=ST.fd?0:Math.min(am,10000),d=new Date().toLocaleString();
+  bal(am+bo);ST.fd=1;ST.tx.unshift({id,t:'Deposit',m:W.m,a:am,s:'Success',d});if(bo)ST.tx.unshift({id:'WELCOME',t:'Bonus',m:'Promo',a:bo,s:'Success',d});save();W.amt='';W.s=0;W.t='hs';dw();toast(`Deposit successful${bo?' + bonus '+F(bo):''}`)}};
+bal(0);lobby();
+</script></body></html>
