@@ -14,7 +14,7 @@ import { RulesModal } from './components/RulesModal';
 import { AuthModal } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
 import { AviatorGame } from './games/AviatorGame';
-import { SignalPage } from './components/SignalPage';
+import { SignalLicenseGate } from './components/SignalLicenseGate';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { Lock } from 'lucide-react';
 
@@ -94,7 +94,7 @@ const MainContent: React.FC = () => {
         <div className={currentPage === 'game' ? '' : 'hidden'} aria-hidden={currentPage === 'signals'}>
           <AviatorGame onOpenRules={() => setRulesOpen(true)} />
         </div>
-        {currentPage === 'signals' && <SignalPage onBackToGame={openGame} />}
+        {currentPage === 'signals' && <SignalLicenseGate onBackToGame={openGame} />}
       </main>
 
       {/* 4. Cashier & Modals */}
