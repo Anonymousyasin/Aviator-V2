@@ -35,7 +35,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       id: 'START5000',
       type: 'Welcome Bonus',
       method: 'Promo',
-      amount: 5000,
+      amount: 1,
       status: 'Success',
       date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
     }
