@@ -4,6 +4,8 @@ export interface LiveSignal {
   createdAt: Date;
   roundNumber?: number;
   announcedDuringRound?: number;
+  sessionId?: string;
+  updatedAt?: Date;
 }
 
 interface StoredSignal {
@@ -13,6 +15,7 @@ interface StoredSignal {
   roundNumber?: number;
   announcedDuringRound?: number;
   sessionId?: string;
+  updatedAt?: number;
 }
 
 const STORAGE_KEY = 'aviator_local_signal_feed_v1';
@@ -39,9 +42,10 @@ function parseSignals(raw: string | null): StoredSignal[] {
       .filter((item): item is StoredSignal => (
         typeof item?.id === 'string'
         && Number.isFinite(item?.multiplier)
-        && item.multiplier >= 1.01
+        && item.multiplier >= 1
         && item.multiplier <= 500
         && Number.isFinite(item?.createdAt)
+        && (item?.updatedAt === undefined || Number.isFinite(item.updatedAt))
         && (item?.roundNumber === undefined || Number.isInteger(item.roundNumber))
         && (item?.announcedDuringRound === undefined || Number.isInteger(item.announcedDuringRound))
       ))
@@ -75,14 +79,25 @@ function saveSignals(signals: StoredSignal[]): void {
 
 export function publishSignal(multiplier: number, roundNumber: number, sessionId: string): void {
   const now = Date.now();
-  if (!Number.isFinite(multiplier) || multiplier < 1.01 || multiplier > 500) return;
+  if (!Number.isFinite(multiplier) || multiplier < 1 || multiplier > 500) return;
   if (!Number.isInteger(roundNumber) || roundNumber < 1 || !sessionId) return;
 
   const existingSignals = readStoredSignals();
-  if (existingSignals.some((signal) => signal.sessionId === sessionId && signal.roundNumber === roundNumber)) return;
+  const roundedMultiplier = Math.round(multiplier * 100) / 100;
+  const existingIndex = existingSignals.findIndex(
+    (signal) => signal.sessionId === sessionId && signal.roundNumber === roundNumber,
+  );
+  if (existingIndex >= 0) {
+    const existing = existingSignals[existingIndex];
+    if (existing.multiplier === roundedMultiplier) return;
+    const correctedSignal = { ...existing, multiplier: roundedMultiplier, updatedAt: now };
+    saveSignals([correctedSignal, ...existingSignals.filter((_, index) => index !== existingIndex)]);
+    return;
+  }
+
   const signal: StoredSignal = {
     id: makeId(),
-    multiplier: Math.round(multiplier * 100) / 100,
+    multiplier: roundedMultiplier,
     createdAt: now,
     roundNumber,
     announcedDuringRound: Math.max(0, roundNumber - 1),
@@ -99,6 +114,8 @@ export function subscribeToSignals(onSignals: (signals: LiveSignal[]) => void): 
       createdAt: new Date(signal.createdAt),
       roundNumber: signal.roundNumber,
       announcedDuringRound: signal.announcedDuringRound,
+      sessionId: signal.sessionId,
+      updatedAt: signal.updatedAt === undefined ? undefined : new Date(signal.updatedAt),
     }));
     onSignals(signals);
   };

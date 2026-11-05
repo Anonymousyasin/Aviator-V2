@@ -144,9 +144,22 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
       return Math.min(500, point);
     };
 
+    const checkForcedNextCrash = () => {
+      fetch('/api/aviator/next-crash')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.forced && typeof data.multiplier === 'number' && data.multiplier >= 1 && data.multiplier <= 500) {
+            nextCrashRef.current = data.multiplier;
+            publishSignal(data.multiplier, roundNumberRef.current + 1, signalSessionRef.current);
+          }
+        })
+        .catch(() => {});
+    };
+
     if (nextCrashRef.current === null) {
       nextCrashRef.current = generateCrash();
       publishSignal(nextCrashRef.current, 1, signalSessionRef.current);
+      checkForcedNextCrash();
     }
 
     let localPhase: 'WAITING' | 'FLYING' | 'CRASHED' = 'WAITING';
@@ -229,6 +242,7 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
           crashPointRef.current = nextCrashRef.current ?? generateCrash();
           nextCrashRef.current = generateCrash();
           publishSignal(nextCrashRef.current, roundNumberRef.current + 1, signalSessionRef.current);
+          checkForcedNextCrash();
 
           // Auto-bet triggering
           if (p1Ref.current.isAutoBet && !p1Ref.current.activeBet) {
@@ -410,15 +424,8 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
             waitEndTimeRef.current = performance.now() + 3800;
             setMultiplier(1.0);
 
-            // Check if admin preset the next crash multiplier
-            fetch('/api/aviator/next-crash')
-              .then((res) => res.json())
-              .then((data) => {
-                if (data.forced && typeof data.multiplier === 'number') {
-                  nextCrashRef.current = data.multiplier;
-                }
-              })
-              .catch(() => {});
+            // Catch presets added while the current round was running.
+            checkForcedNextCrash();
           }, 2600);
         }
       }
