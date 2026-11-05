@@ -472,8 +472,9 @@ apiRouter.get('/aviator/next-crash', (_req: Request, res: Response) => {
 // 2. ADMIN AUTH & DASHBOARD CONTROL ROUTES
 // ==========================================
 
-// Admin Login
-apiRouter.post('/admin/login', (req: Request, res: Response) => {
+// Admin Login. Kept reusable because Vercel may provide an already parsed
+// request body, while local Express uses express.json().
+function adminLoginHandler(req: Request, res: Response) {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -499,7 +500,9 @@ apiRouter.post('/admin/login', (req: Request, res: Response) => {
     token,
     admin: { username: adminData.username },
   });
-});
+}
+
+apiRouter.post('/admin/login', adminLoginHandler);
 
 // Admin Verify Session
 apiRouter.get('/admin/me', adminAuthMiddleware, (req: Request, res: Response) => {
@@ -890,4 +893,4 @@ if (process.env.VERCEL !== '1') {
   startServer();
 }
 
-export { app };
+export { app, adminLoginHandler };
