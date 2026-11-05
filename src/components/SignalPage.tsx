@@ -24,6 +24,12 @@ function formatAge(date: Date, now: number): string {
   return `${Math.floor(minutes / 60)}h ago`;
 }
 
+function roundLabel(signal: LiveSignal): string {
+  if (signal.roundNumber === undefined) return 'Next-round signal';
+  if (!signal.announcedDuringRound) return `For Round ${signal.roundNumber} · announced before the game`;
+  return `For Round ${signal.roundNumber} · announced one round earlier in Round ${signal.announcedDuringRound}`;
+}
+
 function multiplierStyle(multiplier: number): string {
   if (multiplier >= 10) return 'text-rose-300 border-rose-400/25 bg-rose-500/10';
   if (multiplier >= 2) return 'text-violet-300 border-violet-400/25 bg-violet-500/10';
@@ -96,7 +102,10 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
             {latestSignal ? `${latestSignal.multiplier.toFixed(2)}x` : '—'}
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            {latestSignal ? `${formatAge(latestSignal.createdAt, now)} · ${formatTime(latestSignal.createdAt)}` : 'Waiting for the next game signal'}
+            {latestSignal ? roundLabel(latestSignal) : 'Waiting for the next game signal'}
+          </div>
+          <div className="mt-1 text-xs text-slate-500">
+            {latestSignal ? `${formatAge(latestSignal.createdAt, now)} · ${formatTime(latestSignal.createdAt)}` : 'Start the game to create a local signal'}
           </div>
         </div>
         <div className="rounded-2xl border border-[#202737] bg-[#0e131d] p-4">
@@ -153,7 +162,7 @@ export const SignalPage: React.FC<SignalPageProps> = ({ onBackToGame }) => {
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <div className="min-w-0">
-                    <div className="font-semibold text-slate-200">Next-round signal</div>
+                    <div className="font-semibold text-slate-200">{roundLabel(signal)}</div>
                     <div className="mt-0.5 text-xs text-slate-500">{formatTime(signal.createdAt)} · {formatAge(signal.createdAt, now)}</div>
                   </div>
                 </div>

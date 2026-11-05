@@ -26,4 +26,4 @@ The API health check is available at `/api/health`.
 
 ## Live signals
 
-Open the **Signals** tab or visit `/#signal`. New simulated values from the Aviator game appear immediately and are saved in this browser only using local storage. The page does not use Firestore, a Telegram bot, or any additional credentials. Signals do not sync to other browsers or devices; clearing this site's browser storage clears the saved signal history. These simulated values are not guaranteed predictions or real-money game outcomes.
+Open the **Signals** tab or visit `/#signal`. Each upcoming-round value is published when the preceding round begins, so it is available one round ahead; every signal is labeled with its target round. The local game simulation keeps running behind the Signals page so new rounds continue to appear. Values are saved in this browser only using local storage. The page does not use Firestore, a Telegram bot, or any additional credentials. Signals do not sync to other browsers or devices; clearing this site's browser storage clears the saved signal history. These simulated values are not guaranteed predictions or real-money game outcomes.

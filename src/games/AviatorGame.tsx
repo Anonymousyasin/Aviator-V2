@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { formatBDT } from '../utils/format';
 import { sound } from '../utils/audio';
-import { publishSignal } from '../utils/signals';
+import { createSignalSessionId, publishSignal } from '../utils/signals';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Clock, Menu, HelpCircle, Shield, Check } from 'lucide-react';
 
@@ -67,6 +67,9 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
   const animationFrameRef = useRef<number | null>(null);
   const crashPointRef = useRef<number>(2.0);
   const nextCrashRef = useRef<number | null>(null);
+  const roundNumberRef = useRef(0);
+  const signalSessionRef = useRef<string>('');
+  if (!signalSessionRef.current) signalSessionRef.current = createSignalSessionId();
   const startTimeRef = useRef<number>(0);
   const waitEndTimeRef = useRef<number>(performance.now() + 4000);
 
@@ -143,7 +146,7 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
 
     if (nextCrashRef.current === null) {
       nextCrashRef.current = generateCrash();
-      void publishSignal(nextCrashRef.current);
+      publishSignal(nextCrashRef.current, 1, signalSessionRef.current);
     }
 
     let localPhase: 'WAITING' | 'FLYING' | 'CRASHED' = 'WAITING';
@@ -222,9 +225,10 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
           localPhase = 'FLYING';
           setGamePhase('FLYING');
           startTimeRef.current = now;
+          roundNumberRef.current += 1;
           crashPointRef.current = nextCrashRef.current ?? generateCrash();
           nextCrashRef.current = generateCrash();
-          void publishSignal(nextCrashRef.current);
+          publishSignal(nextCrashRef.current, roundNumberRef.current + 1, signalSessionRef.current);
 
           // Auto-bet triggering
           if (p1Ref.current.isAutoBet && !p1Ref.current.activeBet) {

@@ -91,11 +91,10 @@ const MainContent: React.FC = () => {
 
       {/* 3. 100% Dedicated 1:1 Spribe Aviator Crash Game Stage */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-2 sm:p-4 lg:p-6">
-        {currentPage === 'signals' ? (
-          <SignalPage onBackToGame={openGame} />
-        ) : (
+        <div className={currentPage === 'game' ? '' : 'hidden'} aria-hidden={currentPage === 'signals'}>
           <AviatorGame onOpenRules={() => setRulesOpen(true)} />
-        )}
+        </div>
+        {currentPage === 'signals' && <SignalPage onBackToGame={openGame} />}
       </main>
 
       {/* 4. Cashier & Modals */}

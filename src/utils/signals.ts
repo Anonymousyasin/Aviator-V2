@@ -2,20 +2,33 @@ export interface LiveSignal {
   id: string;
   multiplier: number;
   createdAt: Date;
+  roundNumber?: number;
+  announcedDuringRound?: number;
 }
 
 interface StoredSignal {
   id: string;
   multiplier: number;
   createdAt: number;
+  roundNumber?: number;
+  announcedDuringRound?: number;
+  sessionId?: string;
 }
 
 const STORAGE_KEY = 'aviator_local_signal_feed_v1';
 const LOCAL_UPDATE_EVENT = 'aviator-local-signals-updated';
 const MAX_SIGNALS = 40;
-const MIN_PUBLISH_INTERVAL_MS = 12_000;
-let lastPublishedAt = 0;
 let memorySignals: StoredSignal[] = [];
+
+function makeId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function createSignalSessionId(): string {
+  return makeId();
+}
 
 function parseSignals(raw: string | null): StoredSignal[] {
   if (!raw) return [];
@@ -29,6 +42,8 @@ function parseSignals(raw: string | null): StoredSignal[] {
         && item.multiplier >= 1.01
         && item.multiplier <= 500
         && Number.isFinite(item?.createdAt)
+        && (item?.roundNumber === undefined || Number.isInteger(item.roundNumber))
+        && (item?.announcedDuringRound === undefined || Number.isInteger(item.announcedDuringRound))
       ))
       .slice(0, MAX_SIGNALS);
   } catch {
@@ -58,20 +73,22 @@ function saveSignals(signals: StoredSignal[]): void {
   window.dispatchEvent(new CustomEvent(LOCAL_UPDATE_EVENT));
 }
 
-export function publishSignal(multiplier: number): void {
+export function publishSignal(multiplier: number, roundNumber: number, sessionId: string): void {
   const now = Date.now();
   if (!Number.isFinite(multiplier) || multiplier < 1.01 || multiplier > 500) return;
-  if (now - lastPublishedAt < MIN_PUBLISH_INTERVAL_MS) return;
+  if (!Number.isInteger(roundNumber) || roundNumber < 1 || !sessionId) return;
 
-  lastPublishedAt = now;
+  const existingSignals = readStoredSignals();
+  if (existingSignals.some((signal) => signal.sessionId === sessionId && signal.roundNumber === roundNumber)) return;
   const signal: StoredSignal = {
-    id: typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : `${now}-${Math.random().toString(36).slice(2, 10)}`,
+    id: makeId(),
     multiplier: Math.round(multiplier * 100) / 100,
     createdAt: now,
+    roundNumber,
+    announcedDuringRound: Math.max(0, roundNumber - 1),
+    sessionId,
   };
-  saveSignals([signal, ...readStoredSignals()].slice(0, MAX_SIGNALS));
+  saveSignals([signal, ...existingSignals].slice(0, MAX_SIGNALS));
 }
 
 export function subscribeToSignals(onSignals: (signals: LiveSignal[]) => void): () => void {
@@ -80,6 +97,8 @@ export function subscribeToSignals(onSignals: (signals: LiveSignal[]) => void): 
       id: signal.id,
       multiplier: signal.multiplier,
       createdAt: new Date(signal.createdAt),
+      roundNumber: signal.roundNumber,
+      announcedDuringRound: signal.announcedDuringRound,
     }));
     onSignals(signals);
   };
