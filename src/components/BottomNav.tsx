@@ -1,26 +1,43 @@
 import React from 'react';
 import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
-import { Plane, PlusCircle, ArrowDownToLine, User as UserIcon, LogIn } from 'lucide-react';
+import { Activity, Plane, PlusCircle, ArrowDownToLine, User as UserIcon } from 'lucide-react';
 
 interface BottomNavProps {
   onOpenCashier: (tab: 'deposit' | 'withdraw') => void;
   onOpenProfile: () => void;
+  onOpenSignals: () => void;
+  onOpenGame: () => void;
+  currentPage: 'game' | 'signals';
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   onOpenCashier,
   onOpenProfile,
+  onOpenSignals,
+  onOpenGame,
+  currentPage,
 }) => {
   const { language } = useWallet();
   const { isAuthenticated, user } = useAuth();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c0e14]/98 backdrop-blur-md border-t border-[#1e2330] px-3 py-1.5 flex items-center justify-around text-[10px] font-bold text-slate-400">
-      <div className="flex flex-col items-center gap-0.5 p-1 text-[#e50539] font-black">
+      <button
+        onClick={onOpenGame}
+        className={`flex flex-col items-center gap-0.5 p-1 transition-colors ${currentPage === 'game' ? 'font-black text-[#e50539]' : 'hover:text-slate-200'}`}
+      >
         <Plane className="w-4 h-4" />
         <span>{language === 'bn' ? 'এভিয়েটর' : 'Aviator'}</span>
-      </div>
+      </button>
+
+      <button
+        onClick={onOpenSignals}
+        className={`flex flex-col items-center gap-0.5 p-1 transition-colors ${currentPage === 'signals' ? 'font-black text-emerald-400' : 'hover:text-emerald-300'}`}
+      >
+        <Activity className="w-4 h-4" />
+        <span>{language === 'bn' ? 'সিগন্যাল' : 'Signals'}</span>
+      </button>
 
       <button
         onClick={() => onOpenCashier('deposit')}

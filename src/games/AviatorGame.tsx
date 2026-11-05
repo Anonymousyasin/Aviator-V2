@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { formatBDT } from '../utils/format';
 import { sound } from '../utils/audio';
-import { notifyNextCrashMultiplier } from '../utils/telegram';
+import { publishSignal } from '../utils/signals';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Clock, Menu, HelpCircle, Shield, Check } from 'lucide-react';
 
@@ -143,7 +143,7 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
 
     if (nextCrashRef.current === null) {
       nextCrashRef.current = generateCrash();
-      notifyNextCrashMultiplier(nextCrashRef.current);
+      void publishSignal(nextCrashRef.current);
     }
 
     let localPhase: 'WAITING' | 'FLYING' | 'CRASHED' = 'WAITING';
@@ -224,7 +224,7 @@ export const AviatorGame: React.FC<AviatorGameProps> = ({ onBackToLobby, onOpenR
           startTimeRef.current = now;
           crashPointRef.current = nextCrashRef.current ?? generateCrash();
           nextCrashRef.current = generateCrash();
-          notifyNextCrashMultiplier(nextCrashRef.current);
+          void publishSignal(nextCrashRef.current);
 
           // Auto-bet triggering
           if (p1Ref.current.isAutoBet && !p1Ref.current.activeBet) {

@@ -2,18 +2,20 @@ import React from 'react';
 import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
 import { formatBDT } from '../utils/format';
-import { Volume2, VolumeX, HelpCircle, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { Activity, Volume2, VolumeX, HelpCircle, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 
 interface HeaderProps {
   onOpenCashier: (tab: 'deposit' | 'withdraw') => void;
   onOpenRules: () => void;
   onOpenProfile: () => void;
+  onOpenSignals: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenCashier,
   onOpenRules,
   onOpenProfile,
+  onOpenSignals,
 }) => {
   const { balance, vipTier, language, setLanguage, soundMuted, toggleSound } = useWallet();
   const { user, isAuthenticated, logout, openAuthModal } = useAuth();
@@ -43,6 +45,14 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Zone 2: Navigation & Rules */}
         <div className="hidden md:flex items-center gap-3 text-xs font-bold text-slate-300">
+          <button
+            onClick={onOpenSignals}
+            className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1.5 text-emerald-300 transition-colors hover:border-emerald-400/40 hover:bg-emerald-500/10"
+          >
+            <Activity className="h-4 w-4" />
+            <span>Live Signals</span>
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+          </button>
           <button
             onClick={onOpenRules}
             className="hover:text-white transition-colors flex items-center gap-1.5 text-slate-400 cursor-pointer px-2.5 py-1.5 rounded-lg hover:bg-slate-850"
